@@ -7,28 +7,59 @@ import type { SecUser } from '@prisma/client'
 export class PrismaUsersRepository implements UsersRepository {
   async changeUserPasswords(
     companyId: number,
-    userId: number,
+    registration: string,
     newPassword: string
   ): Promise<boolean> {
-    const result = await prisma.$queryRaw<
-      { secuserid: number; secusername: string; secuserdataCadastro: Date }[]
-    >`
-      SELECT "secuserid", "secusername", "secuserdatacadastro" FROM "secuser"
-      WHERE "secusername" IN (
-        SELECT b."matriculacodigo" FROM "secparticipante" a
-        JOIN "participante" c ON a."empresaid" = c."empresaid" AND a."participantecodigo" = c."participantecodigo"
-        JOIN "participantefilial" d ON c."empresaid" = d."empresaid" AND c."participantecodigo" = d."participantecodigo"
-        JOIN "matricula" b ON b."empresaid" = d."empresaid" AND b."alunoparticipantecod" = d."participantecodigo" AND b."alunoparticipantefilialcod" = d."participantefilialcodigo"
-        WHERE a."empresaid" = ${companyId} AND a."secuserid" = ${userId})`
+    const participant = await prisma.matricula.findFirst({
+      where: {
+        empresaId: companyId,
+        matriculaCodigo: registration.trim(),
+      },
+      select: {
+        alunoParticipanteCod: true,
+        alunoParticipanteFilialCod: true,
+      },
+    })
+    const registrationsData = await prisma.matricula.findMany({
+      where: {
+        alunoParticipanteCod: participant?.alunoParticipanteCod,
+        alunoParticipanteFilialCod: participant?.alunoParticipanteFilialCod,
+      },
+      select: {
+        matriculaCodigo: true,
+      },
+    })
 
-    if (result && result.length > 0) {
+    const registrations = registrationsData.map(registrationData =>
+      registrationData.matriculaCodigo.trim()
+    )
+
+    const users = await prisma.secUser.findMany({
+      where: {
+        secUserName: {
+          in: registrations,
+        },
+      },
+      select: {
+        secUserId: true,
+        secUserName: true,
+        secUserDataCadastro: true,
+      },
+    })
+
+    console.log('USERS => ', users)
+    if (users && users.length > 0) {
       const updatedUsers = await Promise.all(
-        result.map(async user => {
+        users.map(async user => {
+          if (!user.secUserDataCadastro)
+            throw new Error('Dados inválidos no cadastro do aluno.')
+
           const encryptedPassword = await this.cryptography(
             newPassword,
-            user.secuserdataCadastro,
+            user.secUserDataCadastro,
             OperationType.CRIPTOGRAFAR
           )
+
           if (!encryptedPassword) {
             throw new Error(
               'Erro ao realizar a criptografia de senha. Tente novamente mais tarde!'
@@ -36,8 +67,8 @@ export class PrismaUsersRepository implements UsersRepository {
           }
 
           return {
-            secUserId: user.secuserid,
-            secUserName: user.secusername,
+            secUserId: user.secUserId,
+            secUserName: user.secUserName,
             encryptedPassword,
           }
         })

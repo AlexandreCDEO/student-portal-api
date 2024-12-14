@@ -191,11 +191,16 @@ export class AuthenticateWithPassword {
     student: User,
     password: string
   ): Promise<Error | null> {
+    if (!student.secUserPassword || !student.secUserDataCadastro) {
+      throw new PasswordIsEmptyError()
+    }
+
     const decryptedPassword = await this.usersRepository.cryptography(
       student.secUserPassword,
       student.secUserDataCadastro,
       OperationType.DESCRIPTOGRAFAR
     )
+
     if (!decryptedPassword) throw new PasswordEncryptionError()
 
     if (decryptedPassword.trim() !== password.trim())

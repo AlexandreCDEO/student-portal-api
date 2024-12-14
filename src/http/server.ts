@@ -14,6 +14,10 @@ import { errorHandler } from './error-handler.js'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password.js'
 import { getProfile } from './routes/auth/get-profile.js'
 import { env } from '@/env/index.js'
+import { changePassword } from './routes/auth/change-password.js'
+import fastifyCookie from '@fastify/cookie'
+import { generateRefreshToken } from './routes/auth/generate-refresh-token.js'
+import { changePasswordWithToken } from './routes/auth/change-password-with-token.js'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -46,20 +50,36 @@ app.register(fastifySwaggerUi, {
   routePrefix: '/docs',
 })
 
+app.register(fastifyCookie)
+
 app.register(fastifyJwt, {
   secret: 'my-jwt-secret',
+  cookie: {
+    cookieName: 'refreshToken',
+    signed: false,
+  },
+  sign: {
+    expiresIn: '1m',
+  },
 })
 
-app.register(fastifyCors)
+//app.register(fastifyCors)
+
+app.register(fastifyCors, {
+  origin: (origin, callback) => {
+    // Permite qualquer origem
+    callback(null, true)
+  },
+  credentials: true, // Permite envio de cookies e cabeçalhos credenciais
+})
 
 app.register(authenticateWithPassword)
 app.register(getProfile)
 app.register(authenticateWithToken)
+app.register(changePassword)
+app.register(generateRefreshToken)
+app.register(changePasswordWithToken)
 
-app
-  .listen({
-    port: env.PORT,
-  })
-  .then(() => {
-    console.log('HTTP server running!')
-  })
+app.listen({ port: env.PORT, host: '0.0.0.0' }).then(() => {
+  console.log('HTTP server running!')
+})

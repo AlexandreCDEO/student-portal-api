@@ -12,7 +12,6 @@ import { MinumunNumberDigitsForPasswordError } from './_errors/minimun-number-di
 import { PasswordOnlyNumbersError } from './_errors/password-only-numbers-error.js'
 import { PasswordNoSpecialCharactersError } from './_errors/password-no-special-characters-error.js'
 import { PasswordComplexityError } from './_errors/password-complexity-error.js'
-import { PasswordRecentlyUsedError } from './_errors/password-recently-used-error.js'
 import { MainGroupOfCompaniesNotExistsError } from './_errors/main-group-of-companies-not-exists-error.js'
 import { CompanyDefinedAsMainNotExistsError } from './_errors/company-defined-as-main-not-exists.js'
 import { UserUpdateError } from './_errors/user-update-error.js'

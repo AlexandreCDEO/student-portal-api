@@ -17,7 +17,7 @@ model Empresa {
   empresaAtivo                 Boolean                        @map("empresaativo")
   empNom                       String?                        @db.Char(15) @map("empnom")
   empRzo                       String?                        @db.Char(40) @map("emprzo")
-  empresaCodInep               BigInt?                        @map("empresacodinep")
+  empresaCodInep               Int?                        @map("empresacodinep")
 
   secretariasArredondamento    SecretariaArredondamento[]
   matriculas                   Matricula[] 
@@ -39,7 +39,7 @@ model Empresa {
 }
 
 model Participante {
-  participanteCodigo           BigInt                         @map("participantecodigo")
+  participanteCodigo           Int                         @map("participantecodigo")
   participanteTipoPessoa       String?                        @db.Char(1) @map("participantetipopessoa")
   participanteRazaoSocial      String?                        @db.Char(50) @map("participanterazaosocial")
   participanteDataCadastro     DateTime?                      @db.Date @map("participantedatacadastro")
@@ -103,7 +103,7 @@ model Departamento {
   departamentoPgmLog          String?   @db.VarChar(128)     @map("departamentopgmlog")
   departamentoUsuCod          String?   @db.Char(15)         @map("departamentousucod")
   departamentoDtaLog          DateTime? @db.Timestamp(6)     @map("departamentodtalog")
-  departamentoCodigoExterno   BigInt?                        @map("departamentocodigoexterno")
+  departamentoCodigoExterno   Int?                        @map("departamentocodigoexterno")
   departamentoAtivo           Boolean?                       @map("departamentoativo")
 
   empresa                     Empresa @relation(fields: [empresaId], references: [empresaId])
@@ -129,7 +129,7 @@ model Cargo {
   cargoUsuCod            String?              @db.Char(15) @map("cargousucod")
   cargoDtaLog            DateTime?            @db.Timestamp(6) @map("cargodtalog")
   cargoGerencia          Boolean?                       @map("cargogerencia")
-  cargoCodigoExterno     BigInt?                        @map("cargocodigoexterno")
+  cargoCodigoExterno     Int?                        @map("cargocodigoexterno")
 
   empresa                Empresa @relation(fields: [empresaId], references: [empresaId])
   empresaId              Int                            @map("empresaid")
@@ -166,7 +166,7 @@ model ParticipanteFilial {
   participanteFilialNacionalidadeUf           String?                        @db.Char(2) @map("participantefilialnacionalidadeuf")
   participanteFilialNacionalidadeEstrangeiro  String?                        @db.VarChar(60) @map("participantefilialnacionalidadeestrangeiro")
   participanteFilialNomeFantasia              String?                        @db.Char(50) @map("participantefilialnomefantasia")
-  participanteFilialCnpj                      BigInt?                        @map("participantefilialcnpj")
+  participanteFilialCnpj                      Int?                        @map("participantefilialcnpj")
   participanteFilialRg                        String?                        @db.VarChar(50) @map("participantefilialrg")
   participanteFilialRgUf                      String?                        @db.Char(3) @map("participantefilialrguf")
   participanteFilialDocumentoSubstituto       String?                        @db.VarChar(60) @map("participantefilialdocumentosubstituto")
@@ -178,7 +178,7 @@ model ParticipanteFilial {
   participanteFilialCodExterno                String?                        @db.Char(15) @map("participantefilialcodexterno")
   participanteFilialRetWs                     String?                        @db.VarChar(1024) @map("participantefilialretws")
   participanteFilialDataDy                    DateTime?                      @db.Timestamp(6) @map("participantefilialdatady")
-  participanteFilialCustomerIdLinx            BigInt?                        @map("participantefilialcustomeridlinx")
+  participanteFilialCustomerIdLinx            Int?                        @map("participantefilialcustomeridlinx")
   participanteFilialTransportadora            Int?                           @map("participantefilialtransportadora")
   participanteFilialGrupoContabil             Int?                           @db.SmallInt @map("participantefilialgrupocontabil")
   participanteFilialRegiaoGeografica          String?                        @db.Char(2) @map("participantefilialregiaogeografica")
@@ -198,7 +198,7 @@ model ParticipanteFilial {
   empresaId                                   Int                            @map("empresaid")
 
   participante                                Participante? @relation(fields: [empresaId, participanteCodigo], references: [empresaId, participanteCodigo])
-  participanteCodigo                          BigInt                         @map("participantecodigo")
+  participanteCodigo                          Int                         @map("participantecodigo")
 
   municipio                                   Muncadf? @relation(fields: [participanteFilialNacionalidadeCodMunicipio], references: [mufCod])
   participanteFilialNacionalidadeCodMunicipio Int?                           @map("participantefilialnacionalidadecodmunicipio")
@@ -222,9 +222,9 @@ model ParticipanteFilial {
 model SecUser {
   secUserId               Int                       @id @default(autoincrement()) @map("secuserid")
   secUserName             String                    @db.VarChar(100) @map("secusername")
-  secUserPassword         String                   @db.VarChar(100) @map("secuserpassword")
+  secUserPassword         String?                   @db.VarChar(100) @map("secuserpassword")
   secUserActive           Boolean?                  @map("secuseractive")
-  secUserDataCadastro     DateTime                 @db.Timestamp(6) @map("secuserdatacadastro")
+  secUserDataCadastro     DateTime?                 @db.Timestamp(6) @map("secuserdatacadastro")
   secUserSenhaProvisoria  Boolean?                  @map("secusersenhaprovisoria")
   secUserBloqueado        Boolean?                  @map("secuserbloqueado")
   secUserNameComp         String?                   @db.VarChar(100) @map("secusernamecomp")
@@ -251,13 +251,13 @@ model Matricula {
   empresaId                                    Int                            @map("empresaid")
 
   curso                                        Curso? @relation(fields: [empresaId, cursoCodigo], references: [empresaId, cursoCodigo])
-  cursoCodigo                                  BigInt?                        @map("cursocodigo")
+  cursoCodigo                                  Int?                        @map("cursocodigo")
 
   turma                                        Turma? @relation(fields: [empresaId, turmaCodigo, cursoCodigo], references: [empresaId, turmaCodigo, cursoCodigo])
   turmaCodigo                                  Int?                           @map("turmacodigo")
 
   participanteFilial                           ParticipanteFilial? @relation(fields: [empresaId, alunoParticipanteCod, alunoParticipanteFilialCod], references: [empresaId, participanteCodigo, participanteFilialCodigo])
-  alunoParticipanteCod                         BigInt?                        @map("alunoparticipantecod")
+  alunoParticipanteCod                         Int?                        @map("alunoparticipantecod")
   alunoParticipanteFilialCod                   Int?                           @db.SmallInt @map("alunoparticipantefilialcod")
 
   matriculaPeriodoEscolares                    MatriculaPeriodoEscolar[]
@@ -305,7 +305,7 @@ model SecretariaArredondamento {
 }
 
 model Curso {
-  cursoCodigo                      BigInt                         @map("cursocodigo")
+  cursoCodigo                      Int                         @map("cursocodigo")
   cursoNome                        String?       @db.VarChar(150) @map("cursonome")
   cursoAtivo                       Boolean                        @map("cursoativo")
   cursoDocumentacaoNome            String?       @db.VarChar(150) @map("cursodocumentacaonome")
@@ -323,7 +323,7 @@ model Curso {
   cursoDataAutorizacao             DateTime?                     @map("cursodataautorizacao")
   cursoRegimeAprovacao             String?       @db.VarChar(40) @map("cursoregimeaprovacao")
   cursoRegime                      String?       @db.VarChar(40) @map("cursoregime")
-  cursoIdInep                      BigInt?                        @map("cursoidinep")
+  cursoIdInep                      Int?                        @map("cursoidinep")
   funcionarioCodigo                Int?                           @map("funcionariocodigo")
   cursoQtdDisciplinaOp             Int?                           @map("cursoqtddisciplinaop")
   cursoPercentualEvoAcaIngressoEnade Float?                        @map("cursopercentualevoacaingresenade")
@@ -380,13 +380,13 @@ model MatrizCurricular {
   empresaId                        Int                            @map("empresaid")
 
   curso                            Curso? @relation(fields: [empresaId, cursoCodigo], references: [empresaId, cursoCodigo])
-  cursoCodigo                      BigInt                         @map("cursocodigo")
+  cursoCodigo                      Int                         @map("cursocodigo")
 
   participanteAtivacao             Participante? @relation("ParticipanteAtivacao", fields: [empresaId, matrizCurricularResponsavelAtivacao], references: [empresaId, participanteCodigo])
-  matrizCurricularResponsavelAtivacao BigInt?                      @map("matrizcurricularresponsavelativacao")
+  matrizCurricularResponsavelAtivacao Int?                      @map("matrizcurricularresponsavelativacao")
 
   participanteDesativacao          Participante? @relation("ParticipanteDesativacao", fields: [empresaId, matrizCurricularResponsavelDesativacao], references: [empresaId, participanteCodigo])
-  matrizCurricularResponsavelDesativacao BigInt?                   @map("matrizcurricularresponsaveldesativacao")
+  matrizCurricularResponsavelDesativacao Int?                   @map("matrizcurricularresponsaveldesativacao")
 
   turmas                           Turma[]
 
@@ -456,7 +456,7 @@ model Turma {
   empresaId                                                         Int                            @map("empresaid")
 
   curso                                                             Curso? @relation(fields: [empresaId, cursoCodigo], references: [empresaId, cursoCodigo])
-  cursoCodigo                                                       BigInt                         @map("cursocodigo")
+  cursoCodigo                                                       Int                         @map("cursocodigo")
 
   matrizCurricular                                                  MatrizCurricular? @relation(fields: [empresaId, cursoCodigo, turmaMatrizCurricular], references: [empresaId, cursoCodigo, matrizCurricularCodigo])
   turmaMatrizCurricular                                             Int?                           @map("turmamatrizcurricular")
@@ -563,7 +563,7 @@ model SecParticipante {
 
   participante       Participante @relation(fields: [empresaId, participanteCodigo], references: [empresaId, participanteCodigo])
   empresaId          Int                            @map("empresaid")
-  participanteCodigo BigInt                         @map("participantecodigo")
+  participanteCodigo Int                         @map("participantecodigo")
 
   @@id([empresaId, participanteCodigo, secUserId])
   @@index([secUserId], map: "isecparticipante1")

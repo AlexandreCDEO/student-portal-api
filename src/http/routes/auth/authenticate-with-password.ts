@@ -21,7 +21,8 @@ export async function authenticateWithPassword(app: FastifyInstance) {
         }),
         response: {
           201: z.object({
-            token: z.string().nullable(),
+            access_token: z.string().nullable(),
+            refresh_token: z.string().nullable(),
             registrations: z.array(RegistrationDataSchema),
             userIdToChangePassword: z.number().nullish(),
           }),
@@ -40,20 +41,31 @@ export async function authenticateWithPassword(app: FastifyInstance) {
       })
 
       let token: string | null = null
+      let refreshToken: string | null = null
 
       if (data.registrations && data.registrations.length >= 1) {
         token = await reply.jwtSign({}, { sign: { expiresIn: '5m' } })
+        refreshToken = await reply.jwtSign({}, { sign: { expiresIn: '5m' } })
       }
 
       if (data.student && !data.shouldChangePassword) {
-        token = await reply.jwtSign(
-          { sub: data.student.secUserId },
-          { sign: { expiresIn: '1d' } }
+        token = await reply.jwtSign({
+          sub: data.student.secUserId,
+          registration: data.student.secUserName,
+        })
+
+        refreshToken = await reply.jwtSign(
+          {
+            sub: data.student.secUserId,
+            registration: data.student.secUserName,
+          },
+          { sign: { expiresIn: '7d' } }
         )
       }
 
       return reply.status(201).send({
-        token: token ?? null,
+        access_token: token ?? null,
+        refresh_token: refreshToken ?? null,
         registrations: data.registrations ?? [],
         userIdToChangePassword: data.shouldChangePassword
           ? data.student?.secUserId

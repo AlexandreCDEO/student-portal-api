@@ -1,3 +1,4 @@
+import { auth } from '@/http/middlewares/auth.js'
 import { makeChangePasswordUseCase } from '@/use-cases/factories/make-change-password-use-case.js'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -29,8 +30,10 @@ export async function changePassword(app: FastifyInstance) {
       const { userId, password, newPassword, confirmPassword } = request.body
 
       const changePasswordUseCase = makeChangePasswordUseCase()
+
       await changePasswordUseCase.execute({
         userId,
+        registration: null,
         password,
         newPassword,
         confirmPassword,

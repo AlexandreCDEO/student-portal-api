@@ -9,7 +9,7 @@ export interface UsersRepository {
   findByEmail(email: string): Promise<SecUser | null>
   changeUserPasswords(
     companyId: number,
-    userId: number,
+    registration: string,
     newPassword: string
   ): Promise<boolean>
 

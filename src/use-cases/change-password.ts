@@ -17,9 +17,11 @@ import { PasswordEncryptionError } from './_errors/password-encryption-error.js'
 import { UserUpdateError } from './_errors/user-update-error.js'
 import { InvalidCurrentPasswordError } from './_errors/invalid-current-password-error.js'
 import { NewPasswordEqualError } from './_errors/new-password-equal-error.js'
+import { PasswordIsEmptyError } from './_errors/password-is-empty-error.js'
 
 interface ChangePasswordUseCaseRequest {
   userId: number
+  registration: string | null
   password: string
   newPassword: string
   confirmPassword: string
@@ -39,6 +41,7 @@ export class ChangePasswordUseCase {
 
   async execute({
     userId,
+    registration,
     password,
     newPassword,
     confirmPassword,
@@ -106,18 +109,21 @@ export class ChangePasswordUseCase {
       }
     }
 
+    if (!user.secUserDataCadastro) {
+      throw new PasswordIsEmptyError()
+    }
+
     const hashedPassword = await this.usersRepository.cryptography(
       newPassword,
       user.secUserDataCadastro,
       OperationType.CRIPTOGRAFAR
     )
-
     if (!hashedPassword) throw new PasswordEncryptionError()
 
     const isSuccessfullyChanged =
       await this.usersRepository.changeUserPasswords(
         companyId,
-        userId,
+        registration ? registration : user.secUserName,
         newPassword
       )
 
@@ -133,13 +139,17 @@ export class ChangePasswordUseCase {
     password: string,
     newPassword: string
   ): Promise<Error | null> {
+    if (!student.secUserPassword || !student.secUserDataCadastro) {
+      throw new PasswordIsEmptyError()
+    }
+
     const decryptedPassword = await this.usersRepository.cryptography(
       student.secUserPassword,
       student.secUserDataCadastro,
       OperationType.DESCRIPTOGRAFAR
     )
 
-    if (!decryptedPassword) return new PasswordEncryptionError()
+    if (!decryptedPassword) throw new PasswordEncryptionError()
 
     if (decryptedPassword !== password) throw new InvalidCurrentPasswordError()
 

@@ -6,11 +6,14 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
   app.addHook('preHandler', async request => {
     request.getCurrentUserId = async () => {
       try {
-        const { sub } = await request.jwtVerify<{ sub: number }>()
+        const { sub, registration } = await request.jwtVerify<{
+          sub: number
+          registration: string
+        }>()
 
-        return sub
+        return { sub, registration }
       } catch (err) {
-        throw new UnauthorizedError('Invalid auth token')
+        throw new UnauthorizedError()
       }
     }
   })

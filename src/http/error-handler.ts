@@ -14,10 +14,20 @@ import { NewPasswordEqualError } from '@/use-cases/_errors/new-password-equal-er
 import { PasswordOnlyNumbersError } from '@/use-cases/_errors/password-only-numbers-error.js'
 import { PasswordComplexityError } from '@/use-cases/_errors/password-complexity-error.js'
 import { PasswordNoSpecialCharactersError } from '@/use-cases/_errors/password-no-special-characters-error.js'
+import { CompanyDefinedAsMainNotExistsError } from '@/use-cases/_errors/company-defined-as-main-not-exists.js'
+import { MinumunNumberDigitsForPasswordError } from '@/use-cases/_errors/minimun-number-digits-password-error.js'
+import { UserUpdateError } from '@/use-cases/_errors/user-update-error.js'
 
 type FastifyErrorhandler = FastifyInstance['errorHandler']
 
 export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
+  console.log(error)
+  if (error.code === 'FST_JWT_NO_AUTHORIZATION_IN_COOKIE') {
+    return reply.status(401).send({
+      messages: ['Token de autenticação inválido ou ausente.'],
+    })
+  }
+
   if (error.code === 'FST_ERR_VALIDATION') {
     // Extrai as mensagens de erro
     const messages = error.validation
@@ -44,6 +54,12 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
     })
   }
 
+  if (error instanceof CompanyDefinedAsMainNotExistsError) {
+    return reply.status(404).send({
+      messages: [error.message],
+    })
+  }
+
   if (error instanceof UnauthorizedError) {
     return reply.status(401).send({
       messages: [error.message],
@@ -57,6 +73,12 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   }
 
   if (error instanceof PasswordEncryptionError) {
+    return reply.status(500).send({
+      messages: [error.message],
+    })
+  }
+
+  if (error instanceof UserUpdateError) {
     return reply.status(500).send({
       messages: [error.message],
     })
@@ -113,6 +135,12 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   }
 
   if (error instanceof PasswordComplexityError) {
+    return reply.status(400).send({
+      messages: [error.message],
+    })
+  }
+
+  if (error instanceof MinumunNumberDigitsForPasswordError) {
     return reply.status(400).send({
       messages: [error.message],
     })

@@ -21,7 +21,8 @@ export async function authenticateWithToken(app: FastifyInstance) {
           }),
           response: {
             201: z.object({
-              token: z.string(),
+              access_token: z.string(),
+              refresh_token: z.string(),
             }),
           },
         },
@@ -29,24 +30,30 @@ export async function authenticateWithToken(app: FastifyInstance) {
       async (request, reply) => {
         const { registration } = request.body
         await request.getCurrentUserId()
-        const userId = await prisma.secUser.findFirst({
+
+        const user = await prisma.secUser.findFirst({
           select: {
             secUserId: true,
           },
           where: {
-            secUserName: registration.toUpperCase(),
+            secUserName: registration.trim(),
           },
         })
 
-        if (!userId) throw new WrongCredentialsError()
+        if (!user?.secUserId) throw new WrongCredentialsError()
+        const token = await reply.jwtSign({
+          sub: user?.secUserId,
+          registration: registration,
+        })
 
-        const token = await reply.jwtSign(
-          { sub: userId },
-          { sign: { expiresIn: '1d' } }
+        const refreshToken = await reply.jwtSign(
+          { sub: user?.secUserId, registration: registration },
+          { sign: { expiresIn: '7d' } }
         )
 
-        return reply.status(200).send({
-          token,
+        return reply.status(201).send({
+          access_token: token,
+          refresh_token: refreshToken,
         })
       }
     )
