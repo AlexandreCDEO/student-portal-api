@@ -1,4 +1,4 @@
-import type { FastifyError, FastifyInstance } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { BadRequestError } from '@/use-cases/_errors/bad-request-error.js'
 import { UnauthorizedError } from '@/use-cases/_errors/unauthorized-error.js'
 import { PasswordEncryptionError } from '@/use-cases/_errors/password-encryption-error.js'
@@ -22,7 +22,9 @@ type FastifyErrorhandler = FastifyInstance['errorHandler']
 
 export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   console.log(error)
+
   if (error.code === 'FST_JWT_NO_AUTHORIZATION_IN_COOKIE') {
+    console.log('FST_JWT_NO_AUTHORIZATION_IN_COOKIE')
     return reply.status(401).send({
       messages: ['Token de autenticação inválido ou ausente.'],
     })
@@ -61,6 +63,7 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   }
 
   if (error instanceof UnauthorizedError) {
+    console.log('UnauthorizedError')
     return reply.status(401).send({
       messages: [error.message],
     })
@@ -107,8 +110,6 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
       messages: [error.message],
     })
   }
-
-  // Dentro do seu errorHandler
 
   if (error instanceof PasswordMissmatchError) {
     return reply.status(400).send({

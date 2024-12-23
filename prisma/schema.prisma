@@ -34,7 +34,13 @@ model Empresa {
   politicasSeguranca           PolSegNro[]
   matriculaPeriodoEscolares    MatriculaPeriodoEscolar[]
   grupoEmpresaEmpresas         GrupoEmpresaEmpresa[]
-
+  secParticipantes             SecParticipante[]
+  participanteFiliaisEndereco  ParticipanteFilialEndereco[]
+  participantesfiliaisEnderecosContatosEletronicos ParticipanteFilialEnderecoContatoEletronico[]
+  relacionamentos              Relacionamento[]
+  participantesFiliaisEnderecosContatosTelefone ParticipanteFilialEnderecoContatoTelefone[]
+  relacoes                     ParticipanteRelacao[] @relation("empresaRelacao1")
+  empresaRelacoes              ParticipanteRelacao[] @relation("empresaRelacao2")
   @@map("empresa")
 }
 
@@ -73,6 +79,7 @@ model Muncadf {
   mufCodGia                  Int?                         @map("mufcodgia")
 
   participanteFiliais        ParticipanteFilial[]
+  enderecos                  ParticipanteFilialEndereco[]
 
   @@map("muncadf")
 }
@@ -166,7 +173,7 @@ model ParticipanteFilial {
   participanteFilialNacionalidadeUf           String?                        @db.Char(2) @map("participantefilialnacionalidadeuf")
   participanteFilialNacionalidadeEstrangeiro  String?                        @db.VarChar(60) @map("participantefilialnacionalidadeestrangeiro")
   participanteFilialNomeFantasia              String?                        @db.Char(50) @map("participantefilialnomefantasia")
-  participanteFilialCnpj                      Int?                        @map("participantefilialcnpj")
+  participanteFilialCnpj                      Int?                           @map("participantefilialcnpj")
   participanteFilialRg                        String?                        @db.VarChar(50) @map("participantefilialrg")
   participanteFilialRgUf                      String?                        @db.Char(3) @map("participantefilialrguf")
   participanteFilialDocumentoSubstituto       String?                        @db.VarChar(60) @map("participantefilialdocumentosubstituto")
@@ -214,6 +221,17 @@ model ParticipanteFilial {
   generoId                                    Int?                           @db.SmallInt @map("generoid")
 
   matriculas                                  Matricula[]
+
+  enderecos                                   ParticipanteFilialEndereco[]
+
+  participantesFiliaisEnderecosEletronicos    ParticipanteFilialEnderecoContatoEletronico[]
+
+  relacionamentos                             Relacionamento[]
+
+  participantesFiliaisEnderecosContatosTelefones   ParticipanteFilialEnderecoContatoTelefone[]
+
+  participanteFilial                          ParticipanteRelacao[] @relation("ParticipanteRelacao1")
+  participanteFilialRelacao                   ParticipanteRelacao[] @relation("ParticipanteRelacao2")
 
   @@id([empresaId, participanteCodigo, participanteFilialCodigo])
   @@map("participantefilial")
@@ -562,10 +580,200 @@ model SecParticipante {
   secUserId          Int                            @map("secuserid")
 
   participante       Participante @relation(fields: [empresaId, participanteCodigo], references: [empresaId, participanteCodigo])
+
+  empresa                Empresa      @relation(fields: [empresaId], references: [empresaId])
   empresaId          Int                            @map("empresaid")
   participanteCodigo Int                         @map("participantecodigo")
 
   @@id([empresaId, participanteCodigo, secUserId])
   @@index([secUserId], map: "isecparticipante1")
   @@map("secparticipante")
+}
+
+model ParticipanteFilialEndereco {
+  participanteFilialEnderecoSequencia         Int                                           @db.SmallInt @map("participantefilialenderecosequencia")
+  participanteFilialEnderecoTipo              String?                                       @db.Char(15) @map("participantefilialenderecotipo")
+  participanteFilialEnderecoCep               String?                                       @db.Char(8) @map("participantefilialenderecocep")
+  participanteFilialEnderecoLogradouro        String?                                       @db.VarChar(100) @map("participantefilialenderecologradouro")
+  participanteFilialEnderecoNumero            String?                                       @db.Char(10) @map("participantefilialendereconumero")
+  participanteFilialEnderecoComplemento       String?                                       @db.Char(60) @map("participantefilialenderecocomplemento")
+  participanteFilialEnderecoBairro            String?                                       @db.Char(60) @map("participantefilialenderecobairro")
+  participanteFilialEnderecoInscricaoEstadual String?                                       @db.Char(18) @map("participantefilialenderecoinscricaoestadual")
+  participanteFilialEnderecoCnpj              BigInt?                                       @map("participantefilialenderecocnpj")
+  participanteFilialEnderecoUsuarioLog        String?                                       @db.Char(15) @map("participantefilialenderecousuariolog")
+  participanteFilialEnderecoPgmLog            String?                                       @db.Char(128) @map("participantefilialenderecopgmlog")
+  participanteFilialEnderecoDataLog           DateTime?                                     @db.Timestamp(6) @map("participantefilialenderecodatalog")
+  participanteFilialEnderecoStatus            Boolean?                                      @map("participantefilialenderecostatus")
+
+  empresa                                     Empresa                                       @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                   Int                                           @map("empresaid")
+
+  participanteFilial                          ParticipanteFilial                            @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo])
+  participanteCodigo                          Int                                           @map("participantecodigo")
+  participanteFilialCodigo                    Int                                           @db.SmallInt @map("participantefilialcodigo")
+  
+  municipio                                   Muncadf?                                      @relation(fields: [municipioCodigo], references: [mufCod])
+  municipioCodigo                             Int?                                          @map("municipiocodigo")
+  
+  estado                                      Estado01?                                      @relation(fields: [unidadeFederativaCodigo], references: [estCod])
+  unidadeFederativaCodigo                     String?                                       @db.Char(2) @map("unidadefederativacodigo")
+
+  pais                                        Paises01?                                     @relation(fields: [paisCodigo], references: [paiCod])
+  paisCodigo                                  Int?                                          @db.SmallInt @map("paiscodigo")
+
+  relacionamento                              Relacionamento @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantecontatoeletronico2")
+  relacionamentoCodigo                               String                         @db.Char(15) @map("relacionamentocodigo")
+  
+  contatosEletronicos                         ParticipanteFilialEnderecoContatoEletronico[]
+
+  participantesFiliasEnderecosContatosTelefones ParticipanteFilialEnderecoContatoTelefone[]
+
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo, participanteFilialEnderecoSequencia])
+  @@index([municipioCodigo], map: "iparticipantefilialendereco1")
+  @@index([unidadeFederativaCodigo], map: "iparticipantefilialendereco2")
+  @@index([paisCodigo], map: "iparticipantefilialendereco3")
+  @@map("participantefilialendereco")
+}
+
+model Paises01 {
+  paiCod                     Int                          @id @db.SmallInt @map("paicod")
+  paiNom                     String?                      @db.Char(40) @map("painom")
+  paiSigla                   String?                      @db.Char(3) @map("paisigla")
+  ddiCod                     Int?                         @db.SmallInt @map("ddicod")
+  paiIsWeb                   String?                      @db.VarChar(1) @map("paisisweb")
+  paiSts                     String?                      @db.Char(1) @map("paists")
+  paiNacionalidade           String?                      @db.VarChar(40) @map("painacionalidade")
+
+  participanteFilialEndereco ParticipanteFilialEndereco[]
+
+  @@map("paises01")
+}
+
+model Estado01 {
+  estCod                                  String                       @id @db.Char(2) @map("estcod")
+  estNom                                  String?                      @db.Char(40) @map("estnom")
+  estCodUf                                Int?                         @db.SmallInt @map("estcoduf")
+  estFlgZfm                               String?                      @db.Char(1) @map("estflgzfm")
+  estGeoCod                               String?                      @db.Char(2) @map("estgeocod")
+  estFisCod                               String?                      @db.Char(2) @map("estfiscod")
+  estCodCen                               Int?                         @db.SmallInt @map("estcodcen")
+
+  participanteFilialEndereco              ParticipanteFilialEndereco[]
+
+  @@index([estFisCod], map: "iesta012")
+  @@index([estGeoCod], map: "iesta013")
+
+  @@map("estado01")
+}
+
+model ParticipanteFilialEnderecoContatoEletronico {
+  
+  participanteFilialEnderecoSequencia                Int                            @db.SmallInt @map("participantefilialenderecosequencia")
+  participanteFilialEnderecoContatoSequencia         Int                            @db.SmallInt @map("participantefilialenderecocontatosequencia")
+  participanteFilialEnderecoContatoEletronicoCodigo  Int                            @db.SmallInt @map("participantefilialenderecocontatoeletronicocodigo")
+  participanteFilialEnderecoContatoEletronicoTipo    String?                        @db.VarChar(20) @map("participantefilialenderecocontatoeletronicotipo")
+  participanteFilialEnderecoContatoEletronicoDescric String?                        @db.VarChar(60) @map("participantefilialenderecocontatoeletronicodescric")
+  participanteFilialEnderecoContatoEletronicoUsuLog  String?                        @db.Char(15) @map("participantefilialenderecocontatoeletronicousulog")
+  participanteFilialEnderecoContatoEletronicoPgmLog  String?                        @db.Char(128) @map("participantefilialenderecocontatoeletronicopgmlog")
+  participanteFilialEnderecoContatoEletronicoDtaLog  DateTime?                      @db.Timestamp(6) @map("participantefilialenderecocontatoeletronicodtalog")
+  participanteFilialEnderecoContatoEletronicoMain    Boolean?                       @map("participantefilialenderecocontatoeletronicomain")
+  participanteFilialEnderecoContatoEletronicoStatus  Boolean?                       @map("participantefilialenderecocontatoeletronicostatus")
+
+  empresa                                     Empresa                                       @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                   Int                                           @map("empresaid")
+
+  participanteFilial                          ParticipanteFilial                            @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo])
+  participanteCodigo                          Int                                           @map("participantecodigo")
+  participanteFilialCodigo                    Int                                           @db.SmallInt @map("participantefilialcodigo")
+  
+  participanteFilialEndereco                  ParticipanteFilialEndereco @relation(fields: [relacionamentoCodigo, empresaId, participanteFilialEnderecoSequencia, participanteFilialCodigo, participanteCodigo], references: [relacionamentoCodigo, empresaId, participanteFilialEnderecoSequencia, participanteFilialCodigo, participanteCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantecontatoeletronico1")
+
+  relacionamento                              Relacionamento @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantecontatoeletronico2")
+  relacionamentoCodigo                               String                         @db.Char(15) @map("relacionamentocodigo")
+
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo, participanteFilialEnderecoSequencia, participanteFilialEnderecoContatoSequencia, participanteFilialEnderecoContatoEletronicoCodigo])
+  @@map("participantefilialenderecocontatoeletronico")
+}
+
+model Relacionamento {
+  relacionamentoCodigo     String                         @db.Char(15) @map("relacionamentocodigo")
+  relacionamentoStatus     Boolean?                       @map("relacionamentostatus")
+  relacionamentoPgmLog     String?                        @db.VarChar(128) @map("relacionamentopgmlog")
+  relacionamentoUsuCod     String?                        @db.Char(15) @map("relacionamentousucod")
+  relacionamentoDataLog    DateTime?                      @db.Timestamp(6) @map("relacionamentodatalog")
+  relacionamentoCodigoInep String?                        @db.Char(8) @map("relacionamentocodigoinep")
+
+  empresa                                     Empresa                                       @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                   Int                                           @map("empresaid")
+
+  participanteFilial       ParticipanteFilial @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo], onDelete: NoAction, onUpdate: NoAction, map: "irelacionamento1")
+  participanteCodigo       Int                         @map("participantecodigo")
+  participanteFilialCodigo Int                            @db.SmallInt @map("participantefilialcodigo")
+
+  contatosEletronicos      ParticipanteFilialEnderecoContatoEletronico[]
+  enderecos                ParticipanteFilialEndereco[]
+  participantesFiliaisEnderecosContatosTelefones ParticipanteFilialEnderecoContatoTelefone[]
+
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo])
+  @@map("relacionamento")
+}
+
+model ParticipanteFilialEnderecoContatoTelefone {
+  participanteFilialEnderecoContatoTelefoneSequencia Int                            @db.SmallInt @map("participantefilialenderecocontatotelefonesequencia")
+  participanteFilialEnderecoContatoTelefoneCodigo    Int                            @map("participantefilialenderecocontatotelefonecodigo")
+  participanteFilialEnderecoContatoTelefoneTipo      String?                        @db.Char(20) @map("participantefilialenderecocontatotelefonetipo")
+  participanteFilialEnderecoContatoTelefoneDdi       Int?                           @db.SmallInt @map("participantefilialenderecocontatotelefoneddi")
+  participanteFilialEnderecoContatoTelefoneDdd       Int?                           @db.SmallInt @map("participantefilialenderecocontatotelefoneddd")
+  participanteFilialEnderecoContatoTelefoneNumero    BigInt?                        @map("participantefilialenderecocontatotelefonenumero")
+  participanteFilialEnderecoContatoTelefoneRamal     Int?                           @map("participantefilialenderecocontatotelefoneramal")
+  participanteFilialEnderecoContatoTelefonePgmLog    String?                        @db.Char(20) @map("participantefilialenderecocontatotelefonepgmlog")
+  participanteFilialEnderecoContatoTelefoneUsuLog    String?                        @db.Char(20) @map("participantefilialenderecocontatotelefoneusulog")
+  participanteFilialEnderecoContatoTelefoneDataLog   DateTime?                      @db.Timestamp(6) @map("participantefilialenderecocontatotelefonedatalog")
+  participanteFilialEnderecoContatoTelefoneMain      Boolean?                       @map("participantefilialenderecocontatotelefonemain")
+  participanteFilialEnderecoContatoTelefoneStatus    Boolean?                       @map("participantefilialenderecocontatotelefonestatus")
+
+
+  empresa                                            Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                          Int                            @map("empresaid")
+
+  participanteFilial                                 ParticipanteFilial @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantefilialenderecocontatotelefone2")
+  participanteCodigo                                 Int                            @map("participantecodigo")
+  participanteFilialCodigo                           Int                            @db.SmallInt @map("participantefilialcodigo")
+
+
+  participanteFilialEndereco                         ParticipanteFilialEndereco @relation(fields: [relacionamentoCodigo, empresaId, participanteFilialEnderecoSequencia, participanteFilialCodigo, participanteCodigo], references: [relacionamentoCodigo, empresaId, participanteFilialEnderecoSequencia, participanteFilialCodigo, participanteCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantefilialenderecocontatotelefone1")
+  participanteFilialEnderecoSequencia                Int                            @db.SmallInt @map("participantefilialenderecosequencia")
+
+  Relacionamento                                     Relacionamento @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipantefilialenderecocontatotelefone3")
+  relacionamentoCodigo                               String                         @db.Char(15) @map("relacionamentocodigo")
+  
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, relacionamentoCodigo, participanteFilialEnderecoSequencia, participanteFilialEnderecoContatoTelefoneSequencia, participanteFilialEnderecoContatoTelefoneCodigo])
+  @@map("participantefilialenderecocontatotelefone")
+}
+
+
+model ParticipanteRelacao {
+  participanteRelacao               String?                        @db.VarChar(40) @map("participanterelacao")
+  participanteResponsavelStatus     Boolean?                       @map("participanteresponsavelstatus")
+  participanteRelacaoPgmLog         String?                        @db.VarChar(128) @map("participanterelacaopgmlog")
+  participanteRelacaoUsuCod         String?                        @db.Char(15) @map("participanterelacaousucod")
+  participanteRelacaoDtaLog         DateTime?                      @db.Timestamp(6) @map("participanterelacaodtalog")
+
+  empresa                           Empresa                        @relation("empresaRelacao1", fields: [empresaId], references: [empresaId])
+  empresaId                         Int                            @map("empresaid")
+  
+  empresaParticipanteRelacao        Empresa                        @relation("empresaRelacao2", fields: [participanteRelacaoEmpresaId], references: [empresaId])
+  participanteRelacaoEmpresaId      Int                            @map("participanterelacaoempresaid")
+
+  participanteFilial                ParticipanteFilial             @relation("ParticipanteRelacao1", fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipanterelacao1")
+  participanteCodigo                Int                            @map("participantecodigo")
+  participanteFilialCodigo          Int                            @db.SmallInt @map("participantefilialcodigo")
+  
+  participanteFilialRelacao         ParticipanteFilial             @relation("ParticipanteRelacao2", fields: [participanteRelacaoEmpresaId, participanteRelacaoCodigo, participanteRelacaoFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo], onDelete: NoAction, onUpdate: NoAction, map: "iparticipanterelacao2")
+  participanteRelacaoCodigo         Int                            @map("participanterelacaocodigo")
+  participanteRelacaoFilialCodigo   Int                            @db.SmallInt @map("participanterelacaofilialcodigo")
+
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, participanteRelacaoEmpresaId, participanteRelacaoCodigo, participanteRelacaoFilialCodigo])
+  @@index([participanteRelacaoEmpresaId, participanteRelacaoCodigo, participanteRelacaoFilialCodigo], map: "iparticipanterelacao_unique")
+  @@map("participanterelacao")
 }

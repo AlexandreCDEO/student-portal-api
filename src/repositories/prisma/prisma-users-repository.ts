@@ -47,7 +47,6 @@ export class PrismaUsersRepository implements UsersRepository {
       },
     })
 
-    console.log('USERS => ', users)
     if (users && users.length > 0) {
       const updatedUsers = await Promise.all(
         users.map(async user => {
