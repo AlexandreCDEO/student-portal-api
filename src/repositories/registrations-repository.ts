@@ -14,13 +14,17 @@ export type StudentProfileData = {
   birth: Date | null
   mail: string | null
   race: number | null
-  phone: string | null
+  phone: {
+    ddi: number | null
+    ddd: number | null
+    number: number | null
+  } | null
   country: string | null
   UF: string | null
   city: string | null
   RG: string | null
   UFRG: string | null
-  issuingAgency: number | null
+  issuingAgency: string | null
   addresses:
     | {
         type: string | null
@@ -32,7 +36,11 @@ export type StudentProfileData = {
         city: string | null
         UF: string | null
         country: string | null
-        phone: string | null
+        phone: {
+          ddi: number | null
+          ddd: number | null
+          number: number | null
+        } | null
       }[]
     | null
   parents:
@@ -51,5 +59,18 @@ export interface RegistrationsRepository {
     document: string
   ): Promise<RegistrationWithCourse[]>
 
+  existsByRegistration(registration: string): Promise<boolean>
+
   getStudentProfile(registration: string): Promise<StudentProfileData | null>
+
+  updateStudentProfile(
+    registration: string,
+    genderId: number | null | undefined,
+    mail: string,
+    phone: {
+      ddd: number
+      number: number
+    },
+    race: number
+  ): Promise<boolean>
 }

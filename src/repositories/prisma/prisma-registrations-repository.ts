@@ -6,6 +6,279 @@ import type {
 } from '../registrations-repository.js'
 
 export class PrismaRegistrationsRepository implements RegistrationsRepository {
+  async existsByRegistration(registration: string): Promise<boolean> {
+    const companyId = await prisma.grupoEmpresaEmpresa.findFirst({
+      select: {
+        empresaId: true,
+      },
+      where: {
+        empresaPrincipal: true,
+        grupoEmpresa: {
+          grupoEmpresaAtivo: true,
+          grupoEmpresaPrincipal: true,
+        },
+      },
+    })
+
+    if (!companyId?.empresaId) return false
+
+    const result = await prisma.matricula.findFirst({
+      where: {
+        empresaId: companyId?.empresaId,
+        matriculaCodigo: registration,
+      },
+    })
+
+    if (!result) return false
+
+    return true
+  }
+
+  async updateStudentProfile(
+    registration: string,
+    genderId: number,
+    mail: string,
+    phone: {
+      ddd: number
+      number: number
+    },
+    race: number
+  ): Promise<boolean> {
+    await prisma.$transaction(async prisma => {
+      const companyData = await prisma.grupoEmpresaEmpresa.findFirst({
+        select: {
+          empresaId: true,
+        },
+        where: {
+          empresaPrincipal: true,
+          grupoEmpresa: {
+            grupoEmpresaAtivo: true,
+            grupoEmpresaPrincipal: true,
+          },
+        },
+      })
+
+      const participanteData = await prisma.matricula.findFirst({
+        select: {
+          alunoParticipanteCod: true,
+          alunoParticipanteFilialCod: true,
+        },
+        where: {
+          empresaId: companyData?.empresaId,
+          matriculaCodigo: registration,
+        },
+      })
+
+      if (!participanteData) {
+        return false
+      }
+
+      await prisma.participanteFilial.update({
+        where: {
+          empresaId_participanteCodigo_participanteFilialCodigo: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+          },
+        },
+        data: {
+          generoId: genderId,
+          participanteFilialCorRaca: race,
+        },
+      })
+
+      const residentialAddressData =
+        await prisma.participanteFilialEndereco.findMany({
+          select: {
+            participanteFilialEnderecoSequencia: true,
+          },
+          where: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+            participanteFilialEnderecoTipo: 'Residencial',
+            relacionamentoCodigo: 'Aluno',
+            participanteFilialEnderecoStatus: true,
+          },
+        })
+
+      const residentialAddressSequence =
+        residentialAddressData[0].participanteFilialEnderecoSequencia
+
+      const studentMainEmailData =
+        await prisma.participanteFilialEnderecoContatoEletronico.findMany({
+          select: {
+            empresaId: true,
+            participanteCodigo: true,
+            participanteFilialCodigo: true,
+            relacionamentoCodigo: true,
+            participanteFilialEnderecoSequencia: true,
+            participanteFilialEnderecoContatoSequencia: true,
+            participanteFilialEnderecoContatoEletronicoCodigo: true,
+          },
+          where: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+            relacionamentoCodigo: 'Aluno',
+            participanteFilialEnderecoSequencia: residentialAddressSequence,
+            participanteFilialEnderecoContatoEletronicoTipo: 'E-mail',
+            participanteFilialEnderecoContatoEletronicoMain: true,
+            participanteFilialEnderecoContatoEletronicoStatus: true,
+          },
+        })
+
+      if (studentMainEmailData.length > 0) {
+        await prisma.participanteFilialEnderecoContatoEletronico.update({
+          where: {
+            empresaId_participanteCodigo_participanteFilialCodigo_relacionamentoCodigo_participanteFilialEnderecoSequencia_participanteFilialEnderecoContatoSequencia_participanteFilialEnderecoContatoEletronicoCodigo:
+              {
+                empresaId: studentMainEmailData[0].empresaId,
+                participanteCodigo: studentMainEmailData[0].participanteCodigo,
+                participanteFilialCodigo:
+                  studentMainEmailData[0].participanteFilialCodigo,
+                relacionamentoCodigo:
+                  studentMainEmailData[0].relacionamentoCodigo,
+                participanteFilialEnderecoSequencia:
+                  studentMainEmailData[0].participanteFilialEnderecoSequencia,
+                participanteFilialEnderecoContatoSequencia:
+                  studentMainEmailData[0]
+                    .participanteFilialEnderecoContatoSequencia,
+                participanteFilialEnderecoContatoEletronicoCodigo:
+                  studentMainEmailData[0]
+                    .participanteFilialEnderecoContatoEletronicoCodigo,
+              },
+          },
+          data: {
+            participanteFilialEnderecoContatoEletronicoDescric: mail, // Substitua pelo novo valor do email
+          },
+        })
+      } else {
+        await prisma.participanteFilialEnderecoContatoEletronico.create({
+          data: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+            relacionamentoCodigo: 'Aluno',
+            participanteFilialEnderecoSequencia: residentialAddressSequence,
+            participanteFilialEnderecoContatoSequencia: 1,
+            participanteFilialEnderecoContatoEletronicoCodigo: 3,
+            participanteFilialEnderecoContatoEletronicoTipo: 'E-mail',
+            participanteFilialEnderecoContatoEletronicoDescric: mail,
+            participanteFilialEnderecoContatoEletronicoStatus: true,
+            participanteFilialEnderecoContatoEletronicoUsuLog: 'api',
+            participanteFilialEnderecoContatoEletronicoPgmLog: 'api',
+            participanteFilialEnderecoContatoEletronicoDtaLog: new Date(),
+            participanteFilialEnderecoContatoEletronicoMain: true,
+          },
+        })
+      }
+
+      const studentMainPhoneData =
+        await prisma.participanteFilialEnderecoContatoTelefone.findMany({
+          select: {
+            empresaId: true,
+            participanteCodigo: true,
+            participanteFilialCodigo: true,
+            relacionamentoCodigo: true,
+            participanteFilialEnderecoSequencia: true,
+            participanteFilialEnderecoContatoTelefoneSequencia: true,
+            participanteFilialEnderecoContatoTelefoneCodigo: true,
+          },
+          where: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+            relacionamentoCodigo: 'Aluno',
+            participanteFilialEnderecoSequencia: residentialAddressSequence,
+            participanteFilialEnderecoContatoTelefoneTipo: 'Celular',
+            participanteFilialEnderecoContatoTelefoneStatus: true,
+            participanteFilialEnderecoContatoTelefoneMain: true,
+          },
+        })
+
+      if (studentMainPhoneData.length > 0) {
+        await prisma.participanteFilialEnderecoContatoTelefone.update({
+          where: {
+            empresaId_participanteCodigo_participanteFilialCodigo_relacionamentoCodigo_participanteFilialEnderecoSequencia_participanteFilialEnderecoContatoTelefoneSequencia_participanteFilialEnderecoContatoTelefoneCodigo:
+              {
+                empresaId: studentMainPhoneData[0].empresaId,
+                participanteCodigo: studentMainPhoneData[0].participanteCodigo,
+                participanteFilialCodigo:
+                  studentMainPhoneData[0].participanteFilialCodigo,
+                relacionamentoCodigo:
+                  studentMainPhoneData[0].relacionamentoCodigo,
+                participanteFilialEnderecoSequencia:
+                  studentMainPhoneData[0].participanteFilialEnderecoSequencia,
+                participanteFilialEnderecoContatoTelefoneSequencia:
+                  studentMainPhoneData[0]
+                    .participanteFilialEnderecoContatoTelefoneSequencia,
+                participanteFilialEnderecoContatoTelefoneCodigo:
+                  studentMainPhoneData[0]
+                    .participanteFilialEnderecoContatoTelefoneCodigo,
+              },
+          },
+          data: {
+            participanteFilialEnderecoContatoTelefoneDdd: phone.ddd,
+            participanteFilialEnderecoContatoTelefoneNumero: phone.number,
+          },
+        })
+      } else {
+        await prisma.participanteFilialEnderecoContatoTelefone.create({
+          data: {
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            empresaId: companyData?.empresaId!,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            participanteCodigo: participanteData.alunoParticipanteCod!,
+            participanteFilialCodigo:
+              // biome-ignore lint/style/noNonNullAssertion: <explanation>
+              participanteData.alunoParticipanteFilialCod!,
+            relacionamentoCodigo: 'Aluno',
+            participanteFilialEnderecoSequencia: residentialAddressSequence,
+            participanteFilialEnderecoContatoTelefoneSequencia: 1,
+            participanteFilialEnderecoContatoTelefoneCodigo: 4,
+            participanteFilialEnderecoContatoTelefoneTipo: 'Celular',
+            participanteFilialEnderecoContatoTelefoneDdi: 55,
+            participanteFilialEnderecoContatoTelefoneDdd: phone.ddd,
+            participanteFilialEnderecoContatoTelefoneNumero: BigInt(
+              phone.number
+            ),
+            participanteFilialEnderecoContatoTelefoneRamal: 0,
+            participanteFilialEnderecoContatoTelefoneStatus: true,
+            participanteFilialEnderecoContatoTelefoneMain: true,
+            participanteFilialEnderecoContatoTelefoneDataLog: new Date(),
+            participanteFilialEnderecoContatoTelefonePgmLog:
+              'student-portal-api',
+            participanteFilialEnderecoContatoTelefoneUsuLog:
+              'student-portal-api',
+          },
+        })
+      }
+    })
+
+    return true
+  }
+
   async getStudentProfile(
     registration: string
   ): Promise<StudentProfileData | null> {
@@ -42,7 +315,11 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
             participanteFilialNacionalidadeCodMunicipio: true,
             participanteFilialRg: true,
             participanteFilialRgUf: true,
-            participanteFilialRgOrgaoExpedidor: true,
+            orgaoExpedidor: {
+              select: {
+                orgaoExpedidorNome: true,
+              },
+            },
           },
         },
       },
@@ -66,7 +343,7 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
       },
     })
 
-    const studentStatus = existsParticipantRelation ? 'Ativo' : 'Inativo'
+    const studentStatus = existsParticipantRelation ? 'ATIVO' : 'INATIVO'
 
     const addressesData = await prisma.participanteFilialEndereco.findMany({
       select: {
@@ -91,12 +368,21 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
           select: {
             participanteFilialEnderecoContatoEletronicoDescric: true,
           },
+          where: {
+            participanteFilialEnderecoContatoEletronicoTipo: 'E-mail',
+            participanteFilialEnderecoContatoEletronicoStatus: true,
+            participanteFilialEnderecoContatoEletronicoMain: true,
+          },
         },
         participantesFiliasEnderecosContatosTelefones: {
           select: {
             participanteFilialEnderecoContatoTelefoneDdi: true,
             participanteFilialEnderecoContatoTelefoneDdd: true,
             participanteFilialEnderecoContatoTelefoneNumero: true,
+          },
+          where: {
+            participanteFilialEnderecoContatoTelefoneStatus: true,
+            participanteFilialEnderecoContatoTelefoneMain: true,
           },
         },
       },
@@ -105,6 +391,7 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
         empresaId: companyId?.empresaId,
         participanteCodigo: participantData?.alunoParticipanteCod,
         participanteFilialCodigo: participantData?.alunoParticipanteFilialCod,
+        participanteFilialEnderecoStatus: true,
       },
     })
 
@@ -168,10 +455,22 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
       race:
         participantData.participanteFilial?.participanteFilialCorRaca ?? null,
       phone: residentialAddress
-        ? `+${residentialAddress.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneDdi} (${residentialAddress.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneDdd}) ${residentialAddress.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneNumero}`
+        ? {
+            ddi: residentialAddress
+              .participantesFiliasEnderecosContatosTelefones[0]
+              .participanteFilialEnderecoContatoTelefoneDdi,
+            ddd: residentialAddress
+              .participantesFiliasEnderecosContatosTelefones[0]
+              .participanteFilialEnderecoContatoTelefoneDdd,
+            number: Number(
+              residentialAddress
+                .participantesFiliasEnderecosContatosTelefones[0]
+                .participanteFilialEnderecoContatoTelefoneNumero
+            ),
+          }
         : null,
       country: residentialAddress?.pais?.paiNom?.trim() ?? null,
-      UF: residentialAddress?.municipio?.mufDsc?.trim() ?? null,
+      UF: residentialAddress?.unidadeFederativaCodigo ?? null,
       city: residentialAddress?.municipio?.mufDsc?.trim() ?? null,
       RG:
         participantData.participanteFilial?.participanteFilialRg?.trim() ??
@@ -180,8 +479,8 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
         participantData.participanteFilial?.participanteFilialRgUf?.trim() ??
         null,
       issuingAgency:
-        participantData.participanteFilial
-          ?.participanteFilialRgOrgaoExpedidor ?? null,
+        participantData.participanteFilial?.orgaoExpedidor
+          ?.orgaoExpedidorNome ?? null,
       addresses: addressesData.map(address => ({
         type: address.participanteFilialEnderecoTipo?.trim() ?? null,
         CEP: address.participanteFilialEnderecoCep?.trim() ?? null,
@@ -195,7 +494,16 @@ export class PrismaRegistrationsRepository implements RegistrationsRepository {
         country: address.pais?.paiNom?.trim() ?? null,
         phone:
           address.participantesFiliasEnderecosContatosTelefones.length > 0
-            ? `+${address.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneDdi} (${address.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneDdd}) ${address.participantesFiliasEnderecosContatosTelefones[0].participanteFilialEnderecoContatoTelefoneNumero}`
+            ? {
+                ddi: address.participantesFiliasEnderecosContatosTelefones[0]
+                  .participanteFilialEnderecoContatoTelefoneDdi,
+                ddd: address.participantesFiliasEnderecosContatosTelefones[0]
+                  .participanteFilialEnderecoContatoTelefoneDdd,
+                number: Number(
+                  address.participantesFiliasEnderecosContatosTelefones[0]
+                    .participanteFilialEnderecoContatoTelefoneNumero
+                ),
+              }
             : null,
       })),
       parents: studentParents.map(parent => ({

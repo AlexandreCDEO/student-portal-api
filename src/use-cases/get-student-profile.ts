@@ -15,7 +15,11 @@ type StudentProfileResponse = {
   birth: Date | null
   mail: string | null
   race: number | null
-  phone: string | null
+  phone: {
+    ddi: number | null
+    ddd: number | null
+    number: number | null
+  } | null
   country: string | null
   UF: string | null
   city: string | null
@@ -33,7 +37,11 @@ type StudentProfileResponse = {
         city: string | null
         UF: string | null
         country: string | null
-        phone: string | null
+        phone: {
+          ddi: number | null
+          ddd: number | null
+          number: number | null
+        } | null
       }[]
     | null
   parents:
@@ -69,13 +77,17 @@ export class GetStudentProfileUseCase {
       birth: data.birth,
       mail: data.mail,
       race: data.race,
-      phone: data.phone,
+      phone: {
+        ddi: data.phone?.ddi || null,
+        ddd: data.phone?.ddd || null,
+        number: data.phone?.number || null,
+      },
       country: data.country,
       UF: data.UF,
       city: data.city,
       RG: data.RG,
       UFRG: data.UFRG,
-      issuingAgency: data.issuingAgency?.toString() || null,
+      issuingAgency: data.issuingAgency || null,
       addresses: data.addresses
         ? data.addresses?.map(address => ({
             type: address.type,
@@ -87,7 +99,11 @@ export class GetStudentProfileUseCase {
             city: address.city,
             UF: address.UF,
             country: address.country,
-            phone: address.phone,
+            phone: {
+              ddi: address.phone?.ddi || null,
+              ddd: address.phone?.ddd || null,
+              number: address.phone?.number || null,
+            },
           }))
         : null,
       parents: data.parents

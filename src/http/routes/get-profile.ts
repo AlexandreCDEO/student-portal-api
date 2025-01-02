@@ -12,7 +12,7 @@ export async function getProfile(app: FastifyInstance) {
       '/me',
       {
         schema: {
-          tags: ['auth'],
+          tags: ['student'],
           summary: 'Get user authenticate profile',
           response: {
             200: z.object({
@@ -26,7 +26,13 @@ export async function getProfile(app: FastifyInstance) {
                 birth: z.date().nullable(),
                 mail: z.string().nullable(),
                 race: z.number().nullable(),
-                phone: z.string().nullable(),
+                phone: z
+                  .object({
+                    ddi: z.number().nullable(),
+                    ddd: z.number().nullable(),
+                    number: z.number().nullable(),
+                  })
+                  .nullable(),
                 country: z.string().nullable(),
                 UF: z.string().nullable(),
                 city: z.string().nullable(),
@@ -45,7 +51,13 @@ export async function getProfile(app: FastifyInstance) {
                       city: z.string().nullable(),
                       UF: z.string().nullable(),
                       country: z.string().nullable(),
-                      phone: z.string().nullable(),
+                      phone: z
+                        .object({
+                          ddi: z.number().nullable(),
+                          ddd: z.number().nullable(),
+                          number: z.number().nullable(),
+                        })
+                        .nullable(),
                     })
                   )
                   .nullable(),
@@ -66,9 +78,9 @@ export async function getProfile(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { registration } = await request.getCurrentUserId()
-        console.log('Matricula => ', registration)
         const service = makeGetStudentProfileUseCase()
         const studentProfile = await service.execute({ registration })
+        console.log('studentProfile => ', studentProfile)
         reply.status(200).send({ profile: studentProfile })
       }
     )

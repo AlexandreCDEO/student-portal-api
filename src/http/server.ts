@@ -12,12 +12,14 @@ import fastifyJwt from '@fastify/jwt'
 import { authenticateWithToken } from './routes/auth/authenticate-with-token.js'
 import { errorHandler } from './error-handler.js'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password.js'
-import { getProfile } from './routes/auth/get-profile.js'
+import { getProfile } from './routes/get-profile.js'
 import { env } from '@/env/index.js'
 import { changePassword } from './routes/auth/change-password.js'
 import fastifyCookie from '@fastify/cookie'
 import { generateRefreshToken } from './routes/auth/generate-refresh-token.js'
 import { changePasswordWithToken } from './routes/auth/change-password-with-token.js'
+import { getGenres } from './routes/get-genres.js'
+import { updateProfile } from './routes/update-profile.js'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -63,8 +65,6 @@ app.register(fastifyJwt, {
   },
 })
 
-//app.register(fastifyCors)
-
 app.register(fastifyCors, {
   origin: (origin, callback) => {
     // Permite qualquer origem
@@ -79,6 +79,8 @@ app.register(authenticateWithToken)
 app.register(changePassword)
 app.register(generateRefreshToken)
 app.register(changePasswordWithToken)
+app.register(getGenres)
+app.register(updateProfile)
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }).then(() => {
   console.log('HTTP server running!')

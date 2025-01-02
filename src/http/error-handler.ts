@@ -22,9 +22,7 @@ type FastifyErrorhandler = FastifyInstance['errorHandler']
 
 export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   console.log(error)
-
   if (error.code === 'FST_JWT_NO_AUTHORIZATION_IN_COOKIE') {
-    console.log('FST_JWT_NO_AUTHORIZATION_IN_COOKIE')
     return reply.status(401).send({
       messages: ['Token de autenticação inválido ou ausente.'],
     })
@@ -63,7 +61,6 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   }
 
   if (error instanceof UnauthorizedError) {
-    console.log('UnauthorizedError')
     return reply.status(401).send({
       messages: [error.message],
     })

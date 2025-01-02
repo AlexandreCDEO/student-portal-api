@@ -672,7 +672,7 @@ model ParticipanteFilialEnderecoContatoEletronico {
   participanteFilialEnderecoContatoSequencia         Int                            @db.SmallInt @map("participantefilialenderecocontatosequencia")
   participanteFilialEnderecoContatoEletronicoCodigo  Int                            @db.SmallInt @map("participantefilialenderecocontatoeletronicocodigo")
   participanteFilialEnderecoContatoEletronicoTipo    String?                        @db.VarChar(20) @map("participantefilialenderecocontatoeletronicotipo")
-  participanteFilialEnderecoContatoEletronicoDescric String?                        @db.VarChar(60) @map("participantefilialenderecocontatoeletronicodescric")
+  participanteFilialEnderecoContatoEletronicoDescric String?                        @db.VarChar(255) @map("participantefilialenderecocontatoeletronicodescric")
   participanteFilialEnderecoContatoEletronicoUsuLog  String?                        @db.Char(15) @map("participantefilialenderecocontatoeletronicousulog")
   participanteFilialEnderecoContatoEletronicoPgmLog  String?                        @db.Char(128) @map("participantefilialenderecocontatoeletronicopgmlog")
   participanteFilialEnderecoContatoEletronicoDtaLog  DateTime?                      @db.Timestamp(6) @map("participantefilialenderecocontatoeletronicodtalog")

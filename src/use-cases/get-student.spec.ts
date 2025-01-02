@@ -1,22 +1,22 @@
 import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest'
-import type { RegistrationsRepository } from '@/repositories/registrations-repository.js'
 import { GetStudentProfileUseCase } from './get-student-profile.js'
 import { StudentNotFoundError } from './_errors/student-not-found.js'
+import type { RegistrationsRepository } from '@/repositories/registrations-repository.js'
 
 describe('GetStudentProfileUseCase', () => {
-  let registrationRepository: Mocked<RegistrationsRepository>
+  let registrationsRepository: Mocked<RegistrationsRepository>
   let sut: GetStudentProfileUseCase
 
   beforeEach(() => {
-    registrationRepository = {
+    registrationsRepository = {
       getStudentProfile: vi.fn(),
     } as unknown as Mocked<RegistrationsRepository>
 
-    sut = new GetStudentProfileUseCase(registrationRepository)
+    sut = new GetStudentProfileUseCase(registrationsRepository)
   })
 
-  it('Deve retornar Perfil do estudante(get-student-spec.ts)', async () => {
-    const mockData = {
+  it('should retrieve student profile successfully', async () => {
+    const mockProfile = {
       document: '123456789',
       name: 'John Doe',
       sex: 'M',
@@ -24,43 +24,52 @@ describe('GetStudentProfileUseCase', () => {
       genderId: 1,
       status: 'Active',
       birth: new Date('2000-01-01'),
-      mail: 'john.doe@example.com',
+      mail: 'john.doe@mail.com',
       race: 1,
-      phone: '1234567890',
-      country: 1,
-      UF: 'CA',
-      city: 1,
-      RG: '987654321',
-      UFRG: 'CA',
-      issuingAgency: 1,
+      phone: {
+        ddi: 55,
+        ddd: 11,
+        number: 1234567890,
+      },
+      country: 'Country',
+      UF: 'UF',
+      city: 'City',
+      RG: 'RG123456',
+      UFRG: 'UF123',
+      issuingAgency: '1',
       addresses: [
         {
           type: 'Home',
-          CEP: '90001',
-          street: 'Main St',
+          CEP: '12345-678',
+          street: 'Street',
           number: '123',
-          complement: 'Apt 4',
-          neighborhood: 'Downtown',
-          city: 1,
-          UF: 'CA',
-          country: 1,
+          complement: 'Apt 1',
+          neighborhood: 'Neighborhood',
+          city: 'City',
+          UF: 'UF',
+          country: 'Country',
+          phone: {
+            ddi: 55,
+            ddd: 11,
+            number: 1234567890,
+          },
         },
       ],
       parents: [
         {
-          name: 'Jane Doe',
+          name: 'Parent Name',
           CPF: '12345678901',
-          relation: 'Mother',
+          relation: 'Father',
           status: true,
         },
       ],
     }
 
-    registrationRepository.getStudentProfile.mockResolvedValue(mockData)
+    registrationsRepository.getStudentProfile.mockResolvedValue(mockProfile)
 
-    const result = await sut.execute({ registration: '123456' })
+    const response = await sut.execute({ registration: '123' })
 
-    expect(result).toEqual({
+    expect(response).toEqual({
       document: '123456789',
       name: 'John Doe',
       sex: 'M',
@@ -68,44 +77,95 @@ describe('GetStudentProfileUseCase', () => {
       genderId: 1,
       status: 'Active',
       birth: new Date('2000-01-01'),
-      mail: 'john.doe@example.com',
+      mail: 'john.doe@mail.com',
       race: 1,
-      phone: '1234567890',
-      country: '1',
-      UF: 'CA',
-      city: '1',
-      RG: '987654321',
-      UFRG: 'CA',
+      phone: {
+        ddi: 55,
+        ddd: 11,
+        number: 1234567890,
+      },
+      country: 'Country',
+      UF: 'UF',
+      city: 'City',
+      RG: 'RG123456',
+      UFRG: 'UF123',
       issuingAgency: '1',
       addresses: [
         {
           type: 'Home',
-          CEP: '90001',
-          street: 'Main St',
+          CEP: '12345-678',
+          street: 'Street',
           number: '123',
-          complement: 'Apt 4',
-          neighborhood: 'Downtown',
-          city: '1',
-          UF: 'CA',
-          country: '1',
+          complement: 'Apt 1',
+          neighborhood: 'Neighborhood',
+          city: 'City',
+          UF: 'UF',
+          country: 'Country',
+          phone: {
+            ddi: 55,
+            ddd: 11,
+            number: 1234567890,
+          },
         },
       ],
       parents: [
         {
-          name: 'Jane Doe',
+          name: 'Parent Name',
           CPF: '12345678901',
-          relation: 'Mother',
+          relation: 'Father',
           status: 'Ativo',
         },
       ],
     })
+    expect(registrationsRepository.getStudentProfile).toHaveBeenCalledWith(
+      '123'
+    )
   })
 
-  it('Deve retornar erro quando não encontrar estudante para matrícula informada(get-student-spec.ts)', async () => {
-    registrationRepository.getStudentProfile.mockResolvedValue(null)
+  it('should throw StudentNotFoundError if student is not found', async () => {
+    registrationsRepository.getStudentProfile.mockResolvedValue(null)
 
-    await expect(
-      sut.execute({ registration: '123456' })
-    ).rejects.toBeInstanceOf(StudentNotFoundError)
+    await expect(sut.execute({ registration: '123' })).rejects.toBeInstanceOf(
+      StudentNotFoundError
+    )
+    expect(registrationsRepository.getStudentProfile).toHaveBeenCalledWith(
+      '123'
+    )
+  })
+
+  it('should handle null values in the response', async () => {
+    const mockProfile = {
+      document: null,
+      name: null,
+      sex: null,
+      socialName: null,
+      genderId: null,
+      status: null,
+      birth: null,
+      mail: null,
+      race: null,
+      phone: {
+        ddi: null,
+        ddd: null,
+        number: null,
+      },
+      country: null,
+      UF: null,
+      city: null,
+      RG: null,
+      UFRG: null,
+      issuingAgency: null,
+      addresses: null,
+      parents: null,
+    }
+
+    registrationsRepository.getStudentProfile.mockResolvedValue(mockProfile)
+
+    const response = await sut.execute({ registration: '123' })
+
+    expect(response).toEqual(mockProfile)
+    expect(registrationsRepository.getStudentProfile).toHaveBeenCalledWith(
+      '123'
+    )
   })
 })
