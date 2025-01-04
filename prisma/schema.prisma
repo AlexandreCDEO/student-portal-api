@@ -41,6 +41,10 @@ model Empresa {
   participantesFiliaisEnderecosContatosTelefone ParticipanteFilialEnderecoContatoTelefone[]
   relacoes                     ParticipanteRelacao[] @relation("empresaRelacao1")
   empresaRelacoes              ParticipanteRelacao[] @relation("empresaRelacao2")
+  disciplinas                  Disciplina[]
+  matriculaDisciplinas         MatriculaDisciplina[] 
+  matrizesCurricularesPeriodos MatrizCurricularPeriodo[]
+  matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
   @@map("empresa")
 }
 
@@ -280,6 +284,8 @@ model Matricula {
 
   matriculaPeriodoEscolares                    MatriculaPeriodoEscolar[]
 
+  matriculasdisciplinas                        MatriculaDisciplina[]
+
   @@id([empresaId, matriculaCodigo])
   @@index([empresaId, turmaCodigo, cursoCodigo], map: "imatricula4")
   @@map("matricula")
@@ -365,6 +371,10 @@ model Curso {
   matriculas                       Matricula[]
   matrizesCurriculares             MatrizCurricular[]
 
+  matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
+
+  matrizesCurricularesPeriodos     MatrizCurricularPeriodo[]
+
   @@id([empresaId, cursoCodigo])
   @@map("curso")
 }
@@ -407,6 +417,10 @@ model MatrizCurricular {
   matrizCurricularResponsavelDesativacao Int?                   @map("matrizcurricularresponsaveldesativacao")
 
   turmas                           Turma[]
+
+  matrizesCurricularesPeriodos      MatrizCurricularPeriodo[]
+
+  matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
 
   @@id([empresaId, cursoCodigo, matrizCurricularCodigo])
   @@map("matrizcurricular")
@@ -776,4 +790,103 @@ model ParticipanteRelacao {
   @@id([empresaId, participanteCodigo, participanteFilialCodigo, participanteRelacaoEmpresaId, participanteRelacaoCodigo, participanteRelacaoFilialCodigo])
   @@index([participanteRelacaoEmpresaId, participanteRelacaoCodigo, participanteRelacaoFilialCodigo], map: "iparticipanterelacao_unique")
   @@map("participanterelacao")
+}
+
+model Disciplina {
+  
+  disciplinaCodigo                                                         Int                            @map("disciplinacodigo")
+  disciplinaNome                                                           String?                        @db.VarChar(100) @map("disciplinanome")
+  disciplinaNivelEducacional                                               String?                        @db.VarChar(40) @map("disciplinaniveleducacional")
+  disciplinaDescricaoComplementar                                          String?                        @db.VarChar(100) @map("disciplinadescricaocomplementar")
+  disciplinaAbreviatura                                                    String?                        @db.VarChar(60) @map("disciplinaabreviatura")
+  disciplinaMinPercentualCargaHorariaAproveitamento                        Decimal?                       @db.Decimal(10, 4) @map("disciplinaminpercentualcargahorariaaproveitamento")
+  disciplinaMinAnosAproveitamento                                          Decimal?                       @db.Decimal(3, 2) @map("disciplinaminanosaproveitamento")
+  disciplinaAtiva                                                          Boolean?                       @map("disciplinaativa")
+  disciplinaPgmLog                                                         String?                        @db.VarChar(128) @map("disciplinapgmlog")
+  disciplinaUsuCod                                                         String?                        @db.Char(15) @map("disciplinausucod")
+  disciplinaDtaLog                                                         DateTime?                      @db.Timestamp(6) @map("disciplinadtalog")
+  
+  empresa                                                                  Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                                                Int                            @map("empresaid")
+
+  matriculasDisciplinas                                                   MatriculaDisciplina[]
+
+  @@id([empresaId, disciplinaCodigo])
+  @@index([disciplinaNome], map: "disciplina_disciplinanome_asc")
+  @@map("disciplina")
+}
+
+model MatriculaDisciplina {
+  matriculaDisciplinaSeq                  Int                                       @default(0) @db.SmallInt @map("matriculadisciplinaseq")
+  matriculaDisciplinaPeriodo              String?                                   @db.VarChar(40) @map("matriculadisciplinaperiodo")
+  matriculaDisciplinaStatus               String?                                   @db.VarChar(1) @map("matriculadisciplinastatus")
+  matriculaDisciplinaCargaHor             Int?                                      @db.SmallInt @map("matriculadisciplinacargahor")
+  matriculaDisciplinaMediaFinal           Decimal?                                  @db.Decimal(4, 2) @map("matriculadisciplinamediafinal")
+  matriculaDisciplinaRevisarDp            Boolean?                                  @map("matriculadisciplinarevisardp")
+  matriculaDisciplinaIsDp                 Boolean?                                  @map("matriculadisciplinaisdp")
+  matriculaDisciplinaMetodoVig            DateTime?                                 @db.Timestamp(6) @map("matriculadisciplinametodovig")
+  matriculaDisciplinaTurma                Int?                                      @map("matriculadisciplinaturma")
+  matriculaDisciplinaCursoCodigo          Int?                                      @map("matriculadisciplinacursocodigo")
+  matDisciplinaPeriodoEscolarId           Decimal?                                  @db.Decimal(9, 0) @map("matdisciplinaperiodoescolarid")
+  
+  empresa                                 Empresa                                   @relation(fields: [empresaId], references: [empresaId])
+  empresaId                               Int                                       @map("empresaid")
+
+  matricula                               Matricula                                 @relation(fields: [empresaId, matriculaCodigo], references: [empresaId, matriculaCodigo])
+  matriculaCodigo                         String                                    @db.Char(15) @map("matriculacodigo")
+
+  disciplina                              Disciplina                                @relation(fields: [empresaId, disciplinaCodigo], references: [empresaId, disciplinaCodigo]) 
+  disciplinaCodigo                        Int                                       @map("disciplinacodigo")
+
+
+  @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq])
+  @@index([empresaId, disciplinaCodigo], map: "imatriculadisciplina1")
+  @@index([empresaId, disciplinaCodigo], map: "iparticipantematriculadisciplina1")
+  @@map("matriculadisciplina")
+}
+
+model MatrizCurricularPeriodo {
+  matrizCurricularPeriodo          String          @db.VarChar(40) @map("matrizcurricularperiodo")
+  matrizCurricularPeriodoAtivo     Boolean?                       @map("matrizcurricularperiodoativo")
+  matrizCurricularPeriodoCarOpt    Int?                           @map("matrizcurricularperiodocaropt")
+
+  empresa                          Empresa @relation(fields: [empresaId], references: [empresaId])
+  empresaId                        Int                            @map("empresaid")
+
+  curso                            Curso @relation(fields: [empresaId, cursoCodigo], references: [empresaId, cursoCodigo])
+  cursoCodigo                      Int                            @map("cursocodigo")
+
+  matrizCurricular                 MatrizCurricular @relation(fields: [empresaId, matrizCurricularCodigo, cursoCodigo], references: [empresaId, matrizCurricularCodigo, cursoCodigo], onDelete: NoAction, onUpdate: NoAction)
+  matrizCurricularCodigo           Int                            @map("matrizcurriculacodigo")
+
+  matrizCurricularPeriodoDisciplinas MatrizCurricularPeriodoDisciplina[]
+
+  @@id([empresaId, cursoCodigo, matrizCurricularCodigo, matrizCurricularPeriodo])
+  @@map("matrizcurricularperiodo")
+}
+
+
+
+model MatrizCurricularPeriodoDisciplina {
+  disciplinaCodigo                         Int                            @map("disciplinacodigo")
+  matrizCurricularPeriodoDisciplinaCargaHorariaTotal Int?                 @db.SmallInt @map("matrizcurricularperiododisciplinacargahorariatotal")
+  matrizCurricularPeriodoDisciplinaCargaHorariaPrati Int?                 @db.SmallInt @map("matrizcurricularperiododisciplinacargahorariaprati")
+  matrizCurricularPeriodoDisciplinaOptativa Boolean?                      @map("matrizcurricularperiododisciplinaoptativa")
+
+
+  empresa                                  Empresa @relation(fields: [empresaId], references: [empresaId])
+  empresaId                                Int                            @map("empresaid")
+
+  curso                                    Curso @relation(fields: [empresaId, cursoCodigo], references: [empresaId, cursoCodigo])
+  cursoCodigo                              Int                            @map("cursocodigo")
+
+  matrizCurricular                         MatrizCurricular @relation(fields: [empresaId, cursoCodigo, matrizCurricularCodigo], references: [empresaId, cursoCodigo, matrizCurricularCodigo], map: "imatrizcurricularperiododisciplina3")
+  matrizCurricularCodigo                   Int                            @map("matrizcurriculacodigo")
+
+  matrizCurricularPeriodoRelation          MatrizCurricularPeriodo @relation(fields: [empresaId, cursoCodigo, matrizCurricularCodigo, matrizCurricularPeriodo], references: [empresaId, cursoCodigo, matrizCurricularCodigo, matrizCurricularPeriodo])
+  matrizCurricularPeriodo                  String                         @db.VarChar(40) @map("matrizcurricularperiodo")
+
+  @@id([empresaId, cursoCodigo, matrizCurricularCodigo, matrizCurricularPeriodo, disciplinaCodigo])
+  @@index([empresaId, disciplinaCodigo], map: "imatrizcurricularperiododisciplina1")
+  @@map("matrizcurricularperiododisciplina")
 }

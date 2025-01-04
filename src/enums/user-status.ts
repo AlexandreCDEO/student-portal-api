@@ -8,5 +8,5 @@ export function convertToUserStatus(value: string): UserStatus {
     return value as UserStatus
   }
 
-  throw new Error(`Valor inválido para o status de usuário`)
+  throw new Error('Valor inválido para o status de usuário')
 }

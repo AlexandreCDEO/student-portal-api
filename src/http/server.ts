@@ -20,6 +20,8 @@ import { generateRefreshToken } from './routes/auth/generate-refresh-token.js'
 import { changePasswordWithToken } from './routes/auth/change-password-with-token.js'
 import { getGenres } from './routes/get-genres.js'
 import { updateProfile } from './routes/update-profile.js'
+import { StudentCompletedSemesterHours } from './routes/student-completed-semester-hours.js'
+import { StudentCompletedCourseHours } from './routes/student-completed-course-hours.js'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -81,6 +83,8 @@ app.register(generateRefreshToken)
 app.register(changePasswordWithToken)
 app.register(getGenres)
 app.register(updateProfile)
+app.register(StudentCompletedSemesterHours)
+app.register(StudentCompletedCourseHours)
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }).then(() => {
   console.log('HTTP server running!')

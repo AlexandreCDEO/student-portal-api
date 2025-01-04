@@ -13,5 +13,5 @@ export function convertToTypeOccurrency(value: string): TypeOccurrency {
     return value as TypeOccurrency
   }
 
-  throw new Error(`Valor inválido para tipo de ocorrência de usuário`)
+  throw new Error('Valor inválido para tipo de ocorrência de usuário')
 }

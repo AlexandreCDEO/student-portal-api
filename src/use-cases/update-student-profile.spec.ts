@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest'
-import { UpdateStudentProdileUseCase } from './update-student-profile.js'
 import { StudentNotFoundError } from './_errors/student-not-found.js'
 import type { RegistrationsRepository } from '@/repositories/registrations-repository.js'
+import { UpdateStudentProfileUseCase } from './update-student-profile.js'
 
 describe('UpdateStudentProdileUseCase', () => {
   let registrationsRepository: Mocked<RegistrationsRepository>
-  let sut: UpdateStudentProdileUseCase
+  let sut: UpdateStudentProfileUseCase
 
   beforeEach(() => {
     registrationsRepository = {
@@ -13,7 +13,7 @@ describe('UpdateStudentProdileUseCase', () => {
       updateStudentProfile: vi.fn(),
     } as unknown as Mocked<RegistrationsRepository>
 
-    sut = new UpdateStudentProdileUseCase(registrationsRepository)
+    sut = new UpdateStudentProfileUseCase(registrationsRepository)
   })
 
   it('should update student profile successfully', async () => {
