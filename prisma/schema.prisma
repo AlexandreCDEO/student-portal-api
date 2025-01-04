@@ -45,6 +45,7 @@ model Empresa {
   matriculaDisciplinas         MatriculaDisciplina[] 
   matrizesCurricularesPeriodos MatrizCurricularPeriodo[]
   matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
+  frequencia                  MatriculaDisciplinaFrequencia[]
   @@map("empresa")
 }
 
@@ -285,6 +286,8 @@ model Matricula {
   matriculaPeriodoEscolares                    MatriculaPeriodoEscolar[]
 
   matriculasdisciplinas                        MatriculaDisciplina[]
+
+  frequencia                                   MatriculaDisciplinaFrequencia[]
 
   @@id([empresaId, matriculaCodigo])
   @@index([empresaId, turmaCodigo, cursoCodigo], map: "imatricula4")
@@ -811,6 +814,7 @@ model Disciplina {
 
   matriculasDisciplinas                                                   MatriculaDisciplina[]
 
+  frequencia                                                              MatriculaDisciplinaFrequencia[]
   @@id([empresaId, disciplinaCodigo])
   @@index([disciplinaNome], map: "disciplina_disciplinanome_asc")
   @@map("disciplina")
@@ -838,6 +842,7 @@ model MatriculaDisciplina {
   disciplina                              Disciplina                                @relation(fields: [empresaId, disciplinaCodigo], references: [empresaId, disciplinaCodigo]) 
   disciplinaCodigo                        Int                                       @map("disciplinacodigo")
 
+  frequencia                  MatriculaDisciplinaFrequencia[]
 
   @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq])
   @@index([empresaId, disciplinaCodigo], map: "imatriculadisciplina1")
@@ -889,4 +894,27 @@ model MatrizCurricularPeriodoDisciplina {
   @@id([empresaId, cursoCodigo, matrizCurricularCodigo, matrizCurricularPeriodo, disciplinaCodigo])
   @@index([empresaId, disciplinaCodigo], map: "imatrizcurricularperiododisciplina1")
   @@map("matrizcurricularperiododisciplina")
+}
+
+model MatriculaDisciplinaFrequencia {
+  matriculaDisciplinaFreqData              DateTime                       @db.Timestamp(6) @map("matriculadisciplinafreqdata")
+  matriculaDisciplinaFreqPresente          Boolean?                       @map("matriculadisciplinafreqpresente")
+  matriculaDisciplinaFreqPgmLog            String?                        @db.Char(128) @map("matriculadisciplinafreqpgmlog")
+  matriculaDisciplinaFreqUsuLog            String?                        @db.Char(15) @map("matriculadisciplinafrequsulog")
+  matriculaDisciplinaFreqDtaLog            DateTime?                      @db.Timestamp(6) @map("matriculadisciplinafreqdtalog")
+
+  empresa                                  Empresa @relation(fields : [empresaId], references: [empresaId])
+  empresaId                                Int                            @map("empresaid")
+
+  matricula                                Matricula @relation(fields: [empresaId, matriculaCodigo], references: [empresaId, matriculaCodigo])
+  matriculaCodigo                          String                         @db.Char(15) @map("matriculacodigo")
+
+  disciplina                               Disciplina @relation(fields: [empresaId, disciplinaCodigo], references: [empresaId, disciplinaCodigo])
+  disciplinaCodigo                         Int                            @map("disciplinacodigo")
+
+  matriculaDisciplina                      MatriculaDisciplina @relation(fields: [empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq], references: [empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq])
+  matriculaDisciplinaSeq                   Int                         @map("matriculadisciplinaseq")
+
+  @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq, matriculaDisciplinaFreqData])
+  @@map("matriculadisciplinafrequencia")
 }
