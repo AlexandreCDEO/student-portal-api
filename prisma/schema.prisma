@@ -46,6 +46,10 @@ model Empresa {
   matrizesCurricularesPeriodos MatrizCurricularPeriodo[]
   matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
   frequencia                  MatriculaDisciplinaFrequencia[]
+  tiposRequerimento           TipoRequerimentos[]
+  parametrosRequerimento      ParmRequerimentos[]
+  requerimentos               Requerimento[]
+  conteudosRequerimentos      RequerimentoConteudo[]
   @@map("empresa")
 }
 
@@ -69,6 +73,7 @@ model Participante {
 
   users                        SecParticipante[]
 
+  requerimentos                Requerimento[]
   @@id([empresaId, participanteCodigo])
   @@map("participante")
 }
@@ -238,6 +243,7 @@ model ParticipanteFilial {
   participanteFilial                          ParticipanteRelacao[] @relation("ParticipanteRelacao1")
   participanteFilialRelacao                   ParticipanteRelacao[] @relation("ParticipanteRelacao2")
 
+  requerimentos                               Requerimento[]
   @@id([empresaId, participanteCodigo, participanteFilialCodigo])
   @@map("participantefilial")
 }
@@ -256,6 +262,7 @@ model SecUser {
 
   participantes           SecParticipante[]
   historicoSenhas         SecUserPass[]
+  conteudosRequerimentos  RequerimentoConteudo[]
 
   @@map("secuser")
 }
@@ -289,6 +296,7 @@ model Matricula {
 
   frequencia                                   MatriculaDisciplinaFrequencia[]
 
+  requerimentos                                Requerimento[]
   @@id([empresaId, matriculaCodigo])
   @@index([empresaId, turmaCodigo, cursoCodigo], map: "imatricula4")
   @@map("matricula")
@@ -917,4 +925,125 @@ model MatriculaDisciplinaFrequencia {
 
   @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq, matriculaDisciplinaFreqData])
   @@map("matriculadisciplinafrequencia")
+}
+
+model TipoRequerimentos {
+  tipoRequerimentoId         Int                            @map("tiporequerimentosid")
+  tipoRequerimentoDescricao  String?   @db.VarChar(60)      @map("tiporequerimentosdescricao")
+  tipoRequerimentoStatus     Boolean?                       @map("tiporequerimentosstatus")
+  tipoRequerimentoFixo       Boolean?                       @map("tiporequerimentosfixo")
+  tipoRequerimentoUsuLog     String?   @db.Char(15)         @map("tiporequerimentosusulog")
+  tipoRequerimentoPgmLog     String?   @db.VarChar(128)     @map("tiporequerimentospgmlog")
+  tipoRequerimentoDtaLog     DateTime? @db.Timestamp(6)     @map("tiporequerimentosdtalog")
+  tipoRequerimentoFluxo      String?   @db.VarChar(40)      @map("tiporequerimentosfluxo")
+  tipoRequerimentoRetencao   Boolean?                       @map("tiporequerimentosretencao")
+
+  empresa                    Empresa   @relation(fields: [empresaId], references: [empresaId], onDelete: NoAction, onUpdate: NoAction, map: "itiporequerimentos1")
+  empresaId                  Int                            @map("empresaid")
+  
+  parametrosRequerimento          ParmRequerimentos[]
+  @@id([empresaId, tipoRequerimentoId])
+  @@map("tiporequerimentos")
+}
+
+model ParmRequerimentos {
+  parmRequerimentoId            Int                            @map("parmrequerimentosid")
+  parmRequerimentoDestino       String?                        @db.VarChar(256) @map("parmrequerimentosdestino")
+  parmRequerimentoCusto         String?                        @db.VarChar(40) @map("parmrequerimentoscusto")
+  parmRequerimentoDiasUteis     Int?                           @db.SmallInt @map("parmrequerimentosdiasuteis")
+  parmRequerimentoValor         Decimal?                       @db.Decimal(14, 2) @map("parmrequerimentosvalor")
+  parmRequerimentoUsuLog        String?                        @db.Char(15) @map("parmrequerimentosusulog")
+  parmRequerimentoPgmLog        String?                        @db.Char(128) @map("parmrequerimentospgmlog")
+  parmRequerimentoDtaLog        DateTime?                      @db.Timestamp(6) @map("parmrequerimentosdtalog")
+  parmRequerimentoStatus        Boolean?                       @map("parmrequerimentosstatus")
+  categoriaPagamentoCodigo      Int?                           @map("categoriapagamentocodigo")
+  parmRequerimentoApresentacao  String?                        @db.VarChar(512) @map("parmrequerimentosapresentacao")
+
+  empresa                       Empresa @relation(fields: [empresaId], references: [empresaId], onDelete: NoAction, onUpdate: NoAction)
+  empresaId                     Int                            @map("empresaid")
+
+  tipoRequerimento              TipoRequerimentos? @relation(fields: [empresaId, tipoRequerimentoId], references: [empresaId, tipoRequerimentoId])
+  tipoRequerimentoId            Int?                           @map("tiporequerimentosid")
+
+  requerimentos                 Requerimento[]
+  @@id([empresaId, parmRequerimentoId])
+  @@index([empresaId, tipoRequerimentoId], map: "iparmrequerimentos1")
+  @@index([empresaId, categoriaPagamentoCodigo], map: "iparmrequerimentos2")
+  @@map("parmrequerimentos")
+}
+
+model EduMotivos {
+  eduMotivosId       Int            @id @default(autoincrement()) @map("edumotivosid")
+  eduMotivosDesc     String?        @unique(map: "uedumotivos") @db.VarChar(60) @map("edumotivosdesc")
+  eduMotivosAtivo    Boolean?       @map("edumotivosativo")
+  eduMotivosRetencao String?        @db.VarChar(40) @map("edumotivosretencao")
+  
+  requerimentos       Requerimento[]
+
+  @@map("edumotivos")
+}
+
+model Requerimento {
+  requerimentoId            Int                            @map("requerimentoid")
+  requerimentoTitulo        String?                        @db.VarChar(100) @map("requerimentotitulo")
+  requerimentoUsuLog        String?                        @db.Char(15) @map("requerimentousulog")
+  requerimentoDtaLog        DateTime?                      @db.Timestamp(6) @map("requerimentodtalog")
+  requerimentoPgmLog        String?                        @db.Char(128) @map("requerimentopgmlog")
+  requerimentoData          DateTime?                      @db.Timestamp(6) @map("requerimentodata")
+  requerimentoStatus        String?                        @db.VarChar(40) @map("requerimentostatus")
+  requerimentoTipoPagamento String?                        @db.VarChar(40) @map("requerimentotipopagamento")
+  requerimentoDataFim       DateTime?                      @db.Timestamp(6) @map("requerimentodatafim")
+  requerimentoOrigem        String?                        @db.VarChar(40) @map("requerimentoorigem")
+  
+  empresa                   Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                 Int                            @map("empresaid")
+
+  matricula                 Matricula?                     @relation(fields: [empresaId, matriculaCodigo], references: [empresaId, matriculaCodigo])  
+  matriculaCodigo           String?                        @db.Char(15) @map("matriculacodigo")
+
+  ParametrosRequerimento    ParmRequerimentos?             @relation(fields: [empresaId, parmRequerimentosId], references: [empresaId, parmRequerimentoId])
+  parmRequerimentosId       Int?                           @map("parmrequerimentosid")
+
+  motivo                    EduMotivos?                    @relation(fields: [eduMotivosId], references: [eduMotivosId])
+  eduMotivosId              Int?                           @map("edumotivosid")
+
+  participante              Participante?                  @relation(fields: [empresaId, requerimentoPartCod], references: [empresaId, participanteCodigo])
+  requerimentoPartCod       Int?                        @map("requerimentopartcod")
+
+  participanteFilial        ParticipanteFilial?            @relation(fields: [empresaId, requerimentoPartCod, requerimentoPartFilCod], references: [empresaId, participanteCodigo, participanteFilialCodigo])
+  requerimentoPartFilCod    Int?                           @db.SmallInt @map("requerimentopartfilcod")
+  
+  conteudos                 RequerimentoConteudo[]
+
+  @@id([empresaId, requerimentoId])
+  @@index([empresaId, matriculaCodigo], map: "irequerimento1")
+  @@index([empresaId, parmRequerimentosId], map: "irequerimento2")
+  @@index([eduMotivosId], map: "irequerimento3")
+  @@index([empresaId, requerimentoPartCod, requerimentoPartFilCod], map: "irequerimento4")
+  @@map("requerimento")
+}
+
+model RequerimentoConteudo {
+  conteudoSeq                         Int                            @db.SmallInt @map("conteudoseq")
+  requerimentoContent                 String?                        @db.VarChar(2500) @map("requerimentocontent")
+  requerimentoRequerente              Boolean?                       @map("requerimentorequerente")
+  requerimentoConteudoData            DateTime?                      @db.Timestamp(6) @map("requerimentoconteudodata")
+  areaId                              Int?                           @map("areaid")
+  requerimentoConteudoVisualizado     Boolean?                       @map("requerimentoconteudovisualizado")
+  requerimentoConteudoVisualizadoData DateTime?                      @db.Timestamp(6) @map("requerimentoconteudovisualizadodata")
+  requerimentoConteudoVisualizadoNome String?                        @db.VarChar(100) @map("requerimentoconteudovisualizadonome")
+
+  empresa                             Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                           Int                            @map("empresaid")
+
+  requerimento                        Requerimento                   @relation(fields: [empresaId, requerimentoId], references: [empresaId, requerimentoId])
+  requerimentoId                      Int                            @map("requerimentoid")
+  
+  user                                SecUser?                       @relation(fields: [requerimentoSecUserId], references: [secUserId])
+  requerimentoSecUserId               Int?                           @map("requerimentosecuserid")
+
+  @@id([empresaId, requerimentoId, conteudoSeq])
+  @@index([empresaId, requerimentoId, areaId], map: "irequerimentoconteudo1")
+  @@index([requerimentoSecUserId], map: "irequerimentoconteudo2")
+  @@map("requerimentoconteudo")
 }
