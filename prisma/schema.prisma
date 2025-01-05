@@ -50,6 +50,8 @@ model Empresa {
   parametrosRequerimento      ParmRequerimentos[]
   requerimentos               Requerimento[]
   conteudosRequerimentos      RequerimentoConteudo[]
+  metodos                     Metodo[]
+  avaliacoes                  MatriculaDisciplinaAvaliacao[]
   @@map("empresa")
 }
 
@@ -297,6 +299,8 @@ model Matricula {
   frequencia                                   MatriculaDisciplinaFrequencia[]
 
   requerimentos                                Requerimento[]
+
+  avaliacoes                                   MatriculaDisciplinaAvaliacao[] 
   @@id([empresaId, matriculaCodigo])
   @@index([empresaId, turmaCodigo, cursoCodigo], map: "imatricula4")
   @@map("matricula")
@@ -823,6 +827,8 @@ model Disciplina {
   matriculasDisciplinas                                                   MatriculaDisciplina[]
 
   frequencia                                                              MatriculaDisciplinaFrequencia[]
+  
+  avaliacoes                                                              MatriculaDisciplinaAvaliacao[]
   @@id([empresaId, disciplinaCodigo])
   @@index([disciplinaNome], map: "disciplina_disciplinanome_asc")
   @@map("disciplina")
@@ -850,8 +856,9 @@ model MatriculaDisciplina {
   disciplina                              Disciplina                                @relation(fields: [empresaId, disciplinaCodigo], references: [empresaId, disciplinaCodigo]) 
   disciplinaCodigo                        Int                                       @map("disciplinacodigo")
 
-  frequencia                  MatriculaDisciplinaFrequencia[]
+  frequencia                              MatriculaDisciplinaFrequencia[]
 
+  avaliacoes                              MatriculaDisciplinaAvaliacao[]
   @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq])
   @@index([empresaId, disciplinaCodigo], map: "imatriculadisciplina1")
   @@index([empresaId, disciplinaCodigo], map: "iparticipantematriculadisciplina1")
@@ -1046,4 +1053,50 @@ model RequerimentoConteudo {
   @@index([empresaId, requerimentoId, areaId], map: "irequerimentoconteudo1")
   @@index([requerimentoSecUserId], map: "irequerimentoconteudo2")
   @@map("requerimentoconteudo")
+}
+
+model Metodo {
+  metodoId                     Int                            @map("metodoid")
+  metodoDescricao              String                         @db.VarChar(60) @map("metododescricao")
+  metodoPgmLog                 String?                        @db.VarChar(128) @map("metodopgmlog")
+  metodoUsuCod                 String?                        @db.Char(15) @map("metodousucod")
+  metodoDtaLog                 DateTime?                      @db.Timestamp(6) @map("metododtalog")
+  metodoStatus                 Boolean?                       @map("metodostatus")
+  metodoSubstitutiva           Boolean?                       @map("metodosubstitutiva")
+  metodoTipoSubstitutiva       String?                        @db.VarChar(1) @map("metodotiposubstitutiva")
+
+  empresa                      Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                    Int                            @map("empresaid")
+
+  avaliacoes                   MatriculaDisciplinaAvaliacao[]
+  @@id([empresaId, metodoId])
+  @@unique([empresaId, metodoDescricao], map: "umetodo001")
+  @@map("metodo")
+}
+
+model MatriculaDisciplinaAvaliacao {
+  matriculaDisciplinaAvalSeq             Int                            @db.Integer @map("matriculadisciplinaavalseq")
+  matriculaDisciplinaAvalDesc            String?                        @db.VarChar(60) @map("matriculadisciplinaavaldesc")
+  matriculaDisciplinaAvalNota            Decimal?                       @db.Decimal(5, 2) @map("matriculadisciplinaavalnota")
+  matriculaDisciplinaAvalPeso            Decimal?                       @db.Decimal(5, 2) @map("matriculadisciplinaavalpeso")
+  disciplinaAvaliacaoDtaLog              DateTime?                      @db.Timestamp(6) @map("disciplinaavaliacaodtalog")
+
+  empresa                                Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                              Int                            @map("empresaid")
+
+  matricula                             Matricula                       @relation(fields: [empresaId, matriculaCodigo], references: [empresaId, matriculaCodigo])
+  matriculaCodigo                        String                         @db.Char(15) @map("matriculacodigo")
+  
+  disciplina                            Disciplina                      @relation(fields: [empresaId, disciplinaCodigo], references: [empresaId, disciplinaCodigo])
+  disciplinaCodigo                       Int                            @map("disciplinacodigo")
+  
+  matriculaDisciplina                    MatriculaDisciplina            @relation(fields: [empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq], references: [empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq])
+  matriculaDisciplinaSeq                 Int                            @db.Integer @map("matriculadisciplinaseq")
+  
+  metodo                                 Metodo?                        @relation(fields: [empresaId, metodoId], references: [empresaId, metodoId])
+  metodoId                               Int?                           @map("metodoid")
+
+  @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq, matriculaDisciplinaAvalSeq])
+  @@index([empresaId, metodoId], map: "imatriculadisciplinaavaliacao2")
+  @@map("matriculadisciplinaavaliacao")
 }

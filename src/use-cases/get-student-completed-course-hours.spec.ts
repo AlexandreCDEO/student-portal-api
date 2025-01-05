@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest'
 import { StudentNotFoundError } from './_errors/student-not-found.js'
 import type { RegistrationsRepository } from '@/repositories/registrations-repository.js'
-import type { DisciplineRegistrationRepository } from '@/repositories/discipline-registration.js'
+import type { DisciplineRegistrationRepository } from '@/repositories/discipline-registration-repository.js'
 import { GetStudentCompletedCourseHourUseCase } from './get-student-completed-course-hour.js'
 
 describe('GetStudentCompletedSemesterHourUseCase', () => {

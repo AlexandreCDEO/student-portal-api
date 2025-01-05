@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma.js'
-import type { DisciplineRegistrationRepository } from '../discipline-registration.js'
+import type { DisciplineRegistrationRepository } from '../discipline-registration-repository.js'
 import { CompanyDefinedAsMainNotExistsError } from '@/use-cases/_errors/company-defined-as-main-not-exists.js'
 import { DisciplineStatus } from '@/enums/discipline-status.js'
 

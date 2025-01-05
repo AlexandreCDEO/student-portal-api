@@ -1,4 +1,4 @@
-import type { DisciplineRegistrationRepository } from '@/repositories/discipline-registration.js'
+import type { DisciplineRegistrationRepository } from '@/repositories/discipline-registration-repository.js'
 import type { RegistrationsRepository } from '@/repositories/registrations-repository.js'
 import { StudentNotFoundError } from './_errors/student-not-found.js'
 
