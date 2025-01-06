@@ -1,0 +1,15 @@
+export enum AcademicRegistrationStatus {
+  PRE_REGISTRATION = 'P',
+  ACTIVE = 'A',
+  FINANCIAL_CANCELED_ACTIVE = 'F',
+  CANCELED = 'C',
+  LOCKED = 'T',
+  INTERNALLY_TRANSFERRED = 'I',
+  TRANSFERRED_EXIT = 'S',
+  COMPLETED = 'B',
+  TRAINED = 'R',
+  COURSE_ABANDONMENT = 'O',
+  EXCLUDED = 'E',
+  TRANSFERRED_FROM = 'D',
+  TRANSFERRED_TO = 'U',
+}

@@ -52,6 +52,11 @@ model Empresa {
   conteudosRequerimentos      RequerimentoConteudo[]
   metodos                     Metodo[]
   avaliacoes                  MatriculaDisciplinaAvaliacao[]
+  recadosMural                MuralRecado[]
+  recadosMuralLog             MuralRecadoLog[]
+  recadosMuralPeriodo         MuralRecadoPeriodo[]
+  recadosMuralTurma           MuralRecadoTurma[]
+  recadosMuralCurso           MuralRecadoCurso[]
   @@map("empresa")
 }
 
@@ -265,6 +270,7 @@ model SecUser {
   participantes           SecParticipante[]
   historicoSenhas         SecUserPass[]
   conteudosRequerimentos  RequerimentoConteudo[]
+  muralrecadosLog         MuralRecadoLog[]
 
   @@map("secuser")
 }
@@ -389,6 +395,8 @@ model Curso {
   matrizesCurricularesPeriodosDisciplinas MatrizCurricularPeriodoDisciplina[]
 
   matrizesCurricularesPeriodos     MatrizCurricularPeriodo[]
+
+  recadosMuralCurso                MuralRecadoCurso[]
 
   @@id([empresaId, cursoCodigo])
   @@map("curso")
@@ -517,6 +525,7 @@ model Turma {
 
   matriculas                                                        Matricula[]
 
+  recadosMuralTurma                                                 MuralRecadoTurma[]
   @@id([empresaId, turmaCodigo, cursoCodigo])
   @@index([empresaId, cursoCodigo, turmaMatrizCurricular], map: "iturma1")
   @@index([empresaId, cursoCodigo, turmaTurno], map: "iturma2")
@@ -1099,4 +1108,103 @@ model MatriculaDisciplinaAvaliacao {
   @@id([empresaId, matriculaCodigo, disciplinaCodigo, matriculaDisciplinaSeq, matriculaDisciplinaAvalSeq])
   @@index([empresaId, metodoId], map: "imatriculadisciplinaavaliacao2")
   @@map("matriculadisciplinaavaliacao")
+}
+
+model MuralRecado {
+  muralRecadoCodigo           BigInt                         @map("muralrecadocodigo")
+  muralRecadoDataInicio       DateTime?                      @db.Date @map("muralrecadodatainicio")
+  muralRecadoDataFinal        DateTime?                      @db.Date @map("muralrecadodatafinal")
+  muralRecadoTitulo           String?                        @db.VarChar(100) @map("muralrecadotitulo")
+  muralRecadoMensagem         String?                        @map("muralrecadomensagem")
+  muralRecadoDtaLog           DateTime?                      @db.Timestamp(6) @map("muralrecadodtalog")
+  muralRecadoDestino          String?                        @db.Char(1) @map("muralrecadodestino")
+  muralRecadoCursoTurma       String?                        @db.Char(1) @map("muralrecadocursoturma")
+
+  empresa                     Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                   Int                            @map("empresaid")
+
+  muralRecadoPeriodos         MuralRecadoPeriodo[]
+  muralRecadoTurmas           MuralRecadoTurma[]
+  muralRecadoCursos           MuralRecadoCurso[]
+  muralRecadoLogs             MuralRecadoLog[]
+  @@id([empresaId, muralRecadoCodigo])
+  @@map("muralrecado")
+}
+
+model MuralRecadoPeriodo {
+  muralRecadoPeriodoEscolarId Int                            @map("muralrecadoperiodoescolarid")
+  muralRecadoPeriodoUsuCod    String?                        @db.Char(15) @map("muralrecadoperiodousucod")
+  muralRecadoPeriodoPgmLog    String?                        @db.VarChar(128) @map("muralrecadoperiodopgmlog")
+  muralRecadoPeriodoDtaLog    DateTime?                      @db.Timestamp(6) @map("muralrecadoperiododtalog")
+
+  empresa                     Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                   Int                            @map("empresaid")
+
+  muralRecado                 MuralRecado                    @relation(fields: [empresaId, muralRecadoCodigo], references: [empresaId, muralRecadoCodigo])
+  muralRecadoCodigo           BigInt                         @map("muralrecadocodigo")
+
+  @@id([empresaId, muralRecadoCodigo, muralRecadoPeriodoEscolarId])
+  @@index([empresaId, muralRecadoPeriodoEscolarId], map: "imuralrecadoperiodo2")
+  @@map("muralrecadoperiodo")
+}
+
+model MuralRecadoTurma {
+  
+  muralRecadoTurmaPgmLog      String?                        @db.Char(128) @map("muralrecadoturmapgmlog")
+  muralRecadoTurmaUsuCod      String?                        @db.Char(15) @map("muralrecadoturmausucod")
+  muralRecadoTurmaDtaLog      DateTime?                      @db.Timestamp(6) @map("muralrecadoturmadtalog")
+
+  empresa                     Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                   Int                            @map("empresaid")
+
+  muralRecado                 MuralRecado                    @relation(fields: [empresaId, muralRecadoCodigo], references: [empresaId, muralRecadoCodigo])
+  muralRecadoCodigo           BigInt                         @map("muralrecadocodigo")
+
+  turma                       Turma                          @relation(fields: [muralRecadoTurmaEmpresa, muralRecadoTurmaCurso, muralRecadoTurmaCodigo], references: [empresaId, cursoCodigo, turmaCodigo])
+  muralRecadoTurmaEmpresa     Int                            @map("muralrecadoturmaempresa")
+  muralRecadoTurmaCurso       Int                         @map("muralrecadoturmacurso")
+  muralRecadoTurmaCodigo      Int                            @map("muralrecadoturmacodigo")
+
+  @@id([empresaId, muralRecadoCodigo, muralRecadoTurmaEmpresa, muralRecadoTurmaCurso, muralRecadoTurmaCodigo])
+  @@map("muralrecadoturma")
+}
+
+model MuralRecadoCurso {
+  muralRecadoCursoPgmLog      String?                        @db.Char(128) @map("muralrecadocursopgmlog")
+  muralRecadoCursoUsuCod      String?                        @db.Char(15) @map("muralrecadocursousucod")
+  muralRecadoCursoDtaLog      DateTime?                      @db.Timestamp(6) @map("muralrecadocursodtalog")
+
+  empresa                     Empresa                        @relation(fields: [empresaId], references: [empresaId])
+  empresaId                   Int                            @map("empresaid")
+
+  muralRecado                 MuralRecado                    @relation(fields: [empresaId, muralRecadoCodigo], references: [empresaId, muralRecadoCodigo])
+  muralRecadoCodigo           BigInt                         @map("muralrecadocodigo")
+
+  curso                       Curso                          @relation(fields: [muralRecadoCursoEmpresa, muralRecadoCursoCodigo], references: [empresaId, cursoCodigo])
+  muralRecadoCursoEmpresa     Int                            @map("muralrecadocursoempresa")
+  muralRecadoCursoCodigo      Int                         @map("muralrecadocursocodigo")
+
+  @@id([empresaId, muralRecadoCodigo, muralRecadoCursoEmpresa, muralRecadoCursoCodigo])
+  @@index([muralRecadoCursoEmpresa, muralRecadoCursoCodigo], map: "itrmuralrecadocurso2")
+  @@index([muralRecadoCursoEmpresa, muralRecadoCodigo], map: "itrmuralrecadocurso3")
+  @@map("muralrecadocurso")
+}
+
+model MuralRecadoLog {
+  muralRecadoLogCodigo Int                            @map("muralrecadologcodigo")
+  muralRecadoLogData   DateTime?                      @db.Timestamp(6) @map("muralrecadologdata")
+  
+
+  empresa              Empresa      @relation(fields: [empresaId], references: [empresaId])
+  empresaId            Int                            @map("empresaid")
+
+  muralRecado          MuralRecado  @relation(fields: [empresaId, muralRecadoCodigo], references: [empresaId, muralRecadoCodigo])
+  muralRecadoCodigo    BigInt                         @map("muralrecadocodigo")
+
+  secUser              SecUser?     @relation(fields: [secUserId], references: [secUserId])
+  secUserId            Int?                           @map("secuserid")
+
+  @@id([empresaId, muralRecadoCodigo, muralRecadoLogCodigo])
+  @@index([secUserId], map: "itrmuralrecadolog1")
+  @@map("muralrecadolog")
 }

@@ -17,6 +17,7 @@ import { PasswordNoSpecialCharactersError } from '@/use-cases/_errors/password-n
 import { CompanyDefinedAsMainNotExistsError } from '@/use-cases/_errors/company-defined-as-main-not-exists.js'
 import { MinumunNumberDigitsForPasswordError } from '@/use-cases/_errors/minimun-number-digits-password-error.js'
 import { UserUpdateError } from '@/use-cases/_errors/user-update-error.js'
+import { InvalidDataInRegisteringError } from '@/use-cases/_errors/invalid-data-in-regitering-error.js'
 
 type FastifyErrorhandler = FastifyInstance['errorHandler']
 
@@ -145,6 +146,12 @@ export const errorHandler: FastifyErrorhandler = (error, request, reply) => {
   }
 
   if (error instanceof PasswordNoSpecialCharactersError) {
+    return reply.status(400).send({
+      messages: [error.message],
+    })
+  }
+
+  if (error instanceof InvalidDataInRegisteringError) {
     return reply.status(400).send({
       messages: [error.message],
     })

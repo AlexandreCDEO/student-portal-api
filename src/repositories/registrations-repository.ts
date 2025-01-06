@@ -63,6 +63,8 @@ export interface RegistrationsRepository {
 
   getStudentProfile(registration: string): Promise<StudentProfileData | null>
 
+  getStudentData(registration: string): Promise<Matricula | null>
+
   updateStudentProfile(
     registration: string,
     genderId: number | null | undefined,
