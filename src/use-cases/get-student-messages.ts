@@ -57,7 +57,7 @@ export class GetStudentMessagesUseCase {
         bulletinBoardCode,
         userId
       )
-
+      console.log('historyisGerated', historyisGerated)
       if (!historyisGerated) throw new BulletinBoardHistoryError()
     }
 
@@ -74,8 +74,10 @@ export class GetStudentMessagesUseCase {
     if (!companyId) throw new CompanyDefinedAsMainNotExistsError()
 
     /** Valida se os dados necessários estão gravados corretamente */
-    const studentData =
-      await this.registrationsRepository.getStudentData(registration)
+    const studentData = await this.registrationsRepository.getStudentData(
+      companyId,
+      registration
+    )
 
     if (!studentData) throw new StudentNotFoundError()
 
@@ -99,7 +101,7 @@ export class GetStudentMessagesUseCase {
     const bulletinsBoardData =
       await this.bulletinBoardRepository.getStudentMessages(
         companyId,
-        registration
+        isGraduatingStudent
       )
 
     /** Valida se o estudante deve ver o recado */

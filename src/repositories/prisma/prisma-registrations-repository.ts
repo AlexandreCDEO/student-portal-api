@@ -4,8 +4,23 @@ import type {
   RegistrationWithCourse,
   StudentProfileData,
 } from '../registrations-repository.js'
+import type { Matricula } from '@prisma/client'
 
 export class PrismaRegistrationsRepository implements RegistrationsRepository {
+  async getStudentData(
+    companyId: number,
+    registration: string
+  ): Promise<Matricula | null> {
+    const data = await prisma.matricula.findFirst({
+      where: {
+        empresaId: companyId,
+        matriculaCodigo: registration,
+      },
+    })
+
+    return data
+  }
+
   async existsByRegistration(registration: string): Promise<boolean> {
     const companyId = await prisma.grupoEmpresaEmpresa.findFirst({
       select: {

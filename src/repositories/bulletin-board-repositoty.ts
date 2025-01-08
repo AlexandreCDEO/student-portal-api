@@ -3,6 +3,6 @@ import type { MuralRecado } from '@prisma/client'
 export interface BulletinBoardRepository {
   getStudentMessages(
     companyId: number,
-    registration: string
+    isGraduatingStudent: boolean
   ): Promise<MuralRecado[]>
 }
