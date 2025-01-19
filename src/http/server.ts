@@ -25,6 +25,7 @@ import { StudentCompletedCourseHours } from './routes/student-completed-course-h
 import { getStudentFrequency } from './routes/student-frequency.js'
 import { GetStudentRequirements } from './routes/get-student-requirements.js'
 import { GetStudentAssessments } from './routes/get-student-assessments.js'
+import { GetStudentMessages } from './routes/get-student-messages.js'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -91,6 +92,7 @@ app.register(StudentCompletedCourseHours)
 app.register(getStudentFrequency)
 app.register(GetStudentRequirements)
 app.register(GetStudentAssessments)
+app.register(GetStudentMessages)
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }).then(() => {
   console.log('HTTP server running!')
