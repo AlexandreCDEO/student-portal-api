@@ -14,6 +14,7 @@ import { AcademicRegistrationStatus } from '@/enums/academic-registration-status
 import type { HistoryBulletinBoardRepository } from '@/repositories/history-bulletin-board-repository.js'
 import { BulletinBoardHistoryError } from './_errors/bulletin-board-history-error.js'
 import type { UsersRepository } from '@/repositories/users-repository.js'
+import { MainGroupOfCompaniesNotExistsError } from './_errors/main-group-of-companies-not-exists-error.js'
 
 interface GetStudentMessagesUseCaseRequest {
   registration: string
@@ -57,7 +58,6 @@ export class GetStudentMessagesUseCase {
         bulletinBoardCode,
         userId
       )
-      console.log('historyisGerated', historyisGerated)
       if (!historyisGerated) throw new BulletinBoardHistoryError()
     }
 
@@ -65,7 +65,7 @@ export class GetStudentMessagesUseCase {
     const companyGroup =
       await this.companyGroupsRepository.searchMainGroupOfCompanies()
 
-    if (!companyGroup) throw new CompanyDefinedAsMainNotExistsError()
+    if (!companyGroup) throw new MainGroupOfCompaniesNotExistsError()
 
     const companyId =
       await this.companyCompanyGroupsRepository.searchCompanyDefinedAsMain(
