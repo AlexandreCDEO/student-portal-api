@@ -25,7 +25,6 @@ export async function getGenres(app: FastifyInstance) {
         },
       },
       async () => {
-        console.log('CHAMOU')
         const genres = await prisma.genero.findMany({
           select: {
             generoId: true,

@@ -80,7 +80,6 @@ export async function getProfile(app: FastifyInstance) {
         const { registration } = await request.getCurrentUserId()
         const service = makeGetStudentProfileUseCase()
         const studentProfile = await service.execute({ registration })
-        console.log('studentProfile => ', studentProfile)
         reply.status(200).send({ profile: studentProfile })
       }
     )
