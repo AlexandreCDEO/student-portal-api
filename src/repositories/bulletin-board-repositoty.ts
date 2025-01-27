@@ -5,4 +5,6 @@ export interface BulletinBoardRepository {
     companyId: number,
     isGraduatingStudent: boolean
   ): Promise<MuralRecado[]>
+
+  getStudentMessage(companyId: number, id: number): Promise<MuralRecado | null>
 }

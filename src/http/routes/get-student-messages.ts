@@ -32,9 +32,7 @@ export async function GetStudentMessages(app: FastifyInstance) {
       async (request, reply) => {
         const { registration } = await request.getCurrentUserId()
         const service = makeGetStudentMessagesUseCase()
-
         const result = await service.execute({ registration })
-
         return reply.status(200).send({ messages: result.studentMessages })
       }
     )

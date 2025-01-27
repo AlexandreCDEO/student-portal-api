@@ -127,9 +127,6 @@ export class GetStudentMessagesUseCase {
             studentData.turmaCodigo!
           )
 
-        if (!bulletinBoadIstheStudentCourse && !bulletinBoadIstheStudentClass)
-          return
-
         if (bulletinBoadIstheStudentClass) {
           await saveBulletinBoardAsViewed(
             companyId,

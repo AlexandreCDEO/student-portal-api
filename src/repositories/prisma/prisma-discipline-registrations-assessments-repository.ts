@@ -48,9 +48,6 @@ export class PrismaDisciplineRegistrationsAssessmentsRepository
       orderBy: [
         { empresaId: 'asc' },
         { matriculaCodigo: 'asc' },
-        { disciplinaCodigo: 'asc' },
-        { matriculaDisciplinaSeq: 'asc' },
-        { matriculaDisciplinaAvalSeq: 'asc' },
         { disciplinaAvaliacaoDtaLog: 'desc' },
       ],
     })

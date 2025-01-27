@@ -17,11 +17,11 @@ export class PrismaHistoryBulletinBoardRepository
         empresaId: companyId,
         muralRecadoCodigo: bulletinBoardCode,
       },
-      orderBy: {
-        empresaId: 'asc',
-        muralRecadoCodigo: 'asc',
-        muralRecadoLogCodigo: 'desc',
-      },
+      orderBy: [
+        { empresaId: 'asc' },
+        { muralRecadoCodigo: 'asc' },
+        { muralRecadoLogCodigo: 'desc' },
+      ],
       take: 1,
     })
 
