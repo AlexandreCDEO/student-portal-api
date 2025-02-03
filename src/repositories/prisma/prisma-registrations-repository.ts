@@ -2,11 +2,73 @@ import { prisma } from '@/lib/prisma.js'
 import type {
   RegistrationsRepository,
   RegistrationWithCourse,
+  StudentCardData,
   StudentProfileData,
 } from '../registrations-repository.js'
 import type { Matricula } from '@prisma/client'
 
 export class PrismaRegistrationsRepository implements RegistrationsRepository {
+  async getStudentCardData(
+    companyId: number,
+    registration: string
+  ): Promise<StudentCardData> {
+    const studentData = await prisma.matricula.findFirst({
+      include: {
+        periodoEscolarAtual: {
+          select: {
+            periodoEscolarDataFinal: true,
+          },
+        },
+        participanteFilial: {
+          select: {
+            participanteNomeCompleto: true,
+            avatares: {
+              select: {
+                participanteFilialAvatar: true,
+                participanteFilialAvatarName: true,
+                participanteFilialAvatarExt: true,
+              },
+            },
+          },
+        },
+        curso: {
+          select: {
+            cursoNome: true,
+          },
+        },
+      },
+      where: {
+        empresaId: companyId,
+        matriculaCodigo: registration,
+      },
+    })
+
+    return {
+      name:
+        studentData?.participanteFilial?.participanteNomeCompleto ??
+        'Nome não Informado',
+      course: studentData?.curso?.cursoNome ?? 'Curso não Informado',
+      registration: studentData?.matriculaCodigo ?? 'Matrícula não Informada',
+      FinalDatePeriod:
+        studentData?.periodoEscolarAtual?.periodoEscolarDataFinal ?? new Date(),
+      avatar: {
+        file: studentData?.participanteFilial?.avatares[0]
+          ?.participanteFilialAvatar
+          ? Buffer.from(
+              studentData?.participanteFilial?.avatares[0]
+                ?.participanteFilialAvatar
+            )
+          : null,
+        type:
+          studentData?.participanteFilial?.avatares[0]
+            ?.participanteFilialAvatarExt ?? null,
+        name:
+          studentData?.participanteFilial?.avatares[0]
+            ?.participanteFilialAvatarName ?? null,
+      },
+    }
+  }
+
   async getStudentData(
     companyId: number,
     registration: string

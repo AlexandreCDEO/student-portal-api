@@ -57,6 +57,7 @@ model Empresa {
   recadosMuralPeriodo         MuralRecadoPeriodo[]
   recadosMuralTurma           MuralRecadoTurma[]
   recadosMuralCurso           MuralRecadoCurso[]
+  avatares                    ParticipanteFilialAvatar[]
   @@map("empresa")
 }
 
@@ -251,6 +252,8 @@ model ParticipanteFilial {
   participanteFilialRelacao                   ParticipanteRelacao[] @relation("ParticipanteRelacao2")
 
   requerimentos                               Requerimento[]
+
+  avatares                                    ParticipanteFilialAvatar[]
   @@id([empresaId, participanteCodigo, participanteFilialCodigo])
   @@map("participantefilial")
 }
@@ -283,8 +286,7 @@ model Matricula {
   matriculaSituacaoAluno                       Boolean?                         @map("matriculasituacaoaluno")
   matriculaDataCadastro                        DateTime?                        @db.Timestamp(6) @map("matriculadatacadastro")
   periodoEscolarId                             Int?                             @map("periodoescolarid")
-  periodoEscolarAtualId                        Int?                             @map("periodoescolaratualid")
-
+  
   empresa                                      Empresa @relation(fields: [empresaId], references: [empresaId])
   empresaId                                    Int                            @map("empresaid")
 
@@ -298,6 +300,9 @@ model Matricula {
   alunoParticipanteCod                         Int?                        @map("alunoparticipantecod")
   alunoParticipanteFilialCod                   Int?                           @db.SmallInt @map("alunoparticipantefilialcod")
 
+  periodoEscolarAtual                          PeriodoEscolar? @relation(fields: [empresaId, periodoEscolarAtualId], references: [empresaId, periodoEscolarId])
+  periodoEscolarAtualId                        Int?                             @map("periodoescolaratualid")
+
   matriculaPeriodoEscolares                    MatriculaPeriodoEscolar[]
 
   matriculasdisciplinas                        MatriculaDisciplina[]
@@ -307,6 +312,7 @@ model Matricula {
   requerimentos                                Requerimento[]
 
   avaliacoes                                   MatriculaDisciplinaAvaliacao[] 
+
   @@id([empresaId, matriculaCodigo])
   @@index([empresaId, turmaCodigo, cursoCodigo], map: "imatricula4")
   @@map("matricula")
@@ -468,6 +474,7 @@ model PeriodoEscolar {
 
   turmas                           Turma[]
   matriculaPeriodoEscolares        MatriculaPeriodoEscolar[]
+  matriculasAtuaisPeriodoEscolar   Matricula[]
 
   @@id([empresaId, periodoEscolarId])
   @@map("periodoescolar")
@@ -1194,7 +1201,6 @@ model MuralRecadoLog {
   muralRecadoLogCodigo Int                            @map("muralrecadologcodigo")
   muralRecadoLogData   DateTime?                      @db.Timestamp(6) @map("muralrecadologdata")
   
-
   empresa              Empresa      @relation(fields: [empresaId], references: [empresaId])
   empresaId            Int                            @map("empresaid")
 
@@ -1207,4 +1213,22 @@ model MuralRecadoLog {
   @@id([empresaId, muralRecadoCodigo, muralRecadoLogCodigo])
   @@index([secUserId], map: "itrmuralrecadolog1")
   @@map("muralrecadolog")
+}
+
+model ParticipanteFilialAvatar {
+  
+  participanteFilialAvatarSeq   Int      @db.SmallInt @map("participantefilialavatarseq")
+  participanteFilialAvatar      Bytes     @db.ByteA @map("participantefilialavatar")
+  participanteFilialAvatarName  String? @db.VarChar(400) @map("participantefilialavatarname")
+  participanteFilialAvatarExt   String? @db.VarChar(10) @map("participantefilialavatarext")
+
+  empresa              Empresa      @relation(fields: [empresaId], references: [empresaId])
+  empresaId            Int           @map("empresaid")
+
+  participanteFilial         ParticipanteFilial @relation(fields: [empresaId, participanteCodigo, participanteFilialCodigo], references: [empresaId, participanteCodigo, participanteFilialCodigo])
+  participanteCodigo         Int       @map("participantecodigo")
+  participanteFilialCodigo   Int       @db.SmallInt @map("participantefilialcodigo")
+
+  @@id([empresaId, participanteCodigo, participanteFilialCodigo, participanteFilialAvatarSeq])
+  @@map("participantefilialavatar")
 }

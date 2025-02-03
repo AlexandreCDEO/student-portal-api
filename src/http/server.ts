@@ -2,7 +2,6 @@ import { fastify } from 'fastify'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import {
-  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
@@ -26,6 +25,11 @@ import { getStudentFrequency } from './routes/student-frequency.js'
 import { GetStudentRequirements } from './routes/get-student-requirements.js'
 import { GetStudentAssessments } from './routes/get-student-assessments.js'
 import { GetStudentMessages } from './routes/get-student-messages.js'
+import { saveStudentAvatar } from './routes/save-student-avatar.js'
+import fastifyMultipart from '@fastify/multipart'
+import { transformSwaggerSchema } from './transform-swagger-schema.js'
+import { getStudentAvatar } from './routes/get-student-avatar.js'
+import { getStudentCard } from './routes/get-student-card.js'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -51,7 +55,7 @@ app.register(fastifySwagger, {
     },
     servers: [],
   },
-  transform: jsonSchemaTransform,
+  transform: transformSwaggerSchema,
 })
 
 app.register(fastifySwaggerUi, {
@@ -79,6 +83,8 @@ app.register(fastifyCors, {
   credentials: true, // Permite envio de cookies e cabeçalhos credenciais
 })
 
+app.register(fastifyMultipart)
+
 app.register(authenticateWithPassword)
 app.register(getProfile)
 app.register(authenticateWithToken)
@@ -93,6 +99,9 @@ app.register(getStudentFrequency)
 app.register(GetStudentRequirements)
 app.register(GetStudentAssessments)
 app.register(GetStudentMessages)
+app.register(saveStudentAvatar)
+app.register(getStudentAvatar)
+app.register(getStudentCard)
 
 app.listen({ port: env.PORT, host: '0.0.0.0' }).then(() => {
   console.log('HTTP server running!')

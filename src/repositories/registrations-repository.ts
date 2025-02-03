@@ -53,6 +53,18 @@ export type StudentProfileData = {
     | null
 }
 
+export type StudentCardData = {
+  name: string
+  course: string
+  registration: string
+  FinalDatePeriod: Date
+  avatar: {
+    file: Buffer | null
+    type: string | null
+    name: string | null
+  } | null
+}
+
 export interface RegistrationsRepository {
   findByDocument(
     companyId: number,
@@ -67,6 +79,11 @@ export interface RegistrationsRepository {
     companyId: number,
     registration: string
   ): Promise<Matricula | null>
+
+  getStudentCardData(
+    companyId: number,
+    registration: string
+  ): Promise<StudentCardData>
 
   updateStudentProfile(
     registration: string,
